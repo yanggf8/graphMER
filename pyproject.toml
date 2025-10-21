@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "graphmer-se"
+version = "0.1.0"
+description = "GraphMER for Software Engineering (personal project)"
+authors = [{name = "You"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "pyyaml>=6.0",
+  "pytest>=7.4",
+  "torch>=2.1; platform_system != 'Windows'",  # CPU torch for Linux/macOS runners
+]
+
+[project.optional-dependencies]
+tpu = ["torch-xla>=2.1"]

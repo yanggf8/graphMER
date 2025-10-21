@@ -1,0 +1,67 @@
+name: GraphMER-SE CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    - run: pip install .
+    - run: python -m pytest tests/
+    
+  validate-production:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    - run: pip install .
+    - name: Verify ablation artifacts exist
+      run: |
+        test -f logs/train_metrics_A.csv
+        test -f logs/train_metrics_B.csv
+        test -f logs/training_dataset_validation.log
+    - name: Verify minimum MNM improvement
+      run: |
+        RESULT=$(python scripts/extract_improvement.py --json)
+        python3 -c "
+import json, sys
+data = json.loads('$RESULT')
+validation = data['validation']
+status = validation['status']
+message = validation['message']
+
+if status == 'fail':
+    print(f'❌ {message}')
+    sys.exit(1)
+elif status == 'warning':
+    print(f'⚠️ {message}')
+    print('::warning::MNM improvement in warning band - consider investigation')
+else:
+    print(f'✅ {message}')
+"
+    - name: Upload ablation artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ablation-logs
+        path: |
+          logs/train_metrics_A.csv
+          logs/train_metrics_B.csv
+          checksums.txt
+    - name: Generate and upload metadata
+      run: |
+        python scripts/generate_metadata.py
+        python scripts/track_trends.py
+        sha256sum logs/train_metrics_A.csv logs/train_metrics_B.csv ablation_metadata.json > checksums.txt
+    - name: Upload metadata artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ablation-metadata
+        path: |
+          ablation_metadata.json
+          trends.json

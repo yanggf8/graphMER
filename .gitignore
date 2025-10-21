@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.benchmarks/
+
+# Logs
+*.log
+logs/*.csv
+logs/*.png
+logs/*.json
+
+# Temporary files
+tmp_pkgs/
+test/
+colab_deploy/
+*.tar.gz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data (too large for git)
+data/raw/
+data/kg/*.jsonl
+data/kg/*.json
+
+# Checkpoints and models
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Keep specific files
+!data/kg/manifest.json
+!.gitkeep

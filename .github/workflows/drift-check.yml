@@ -1,0 +1,34 @@
+name: Drift Monitoring
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly Monday 6 AM
+  workflow_dispatch:
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    - run: pip install .
+    - name: Check MNM improvement drift
+      run: |
+        IMPROVEMENT=$(python scripts/extract_improvement.py)
+        python3 -c "
+import sys
+improvement = float('$IMPROVEMENT')
+if improvement < 10:
+    print(f'🚨 DRIFT ALERT: MNM improvement dropped to {improvement}%')
+    sys.exit(1)
+else:
+    print(f'✅ MNM improvement stable at {improvement}%')
+"
+    - name: Archive weekly metadata snapshot
+      run: python scripts/generate_metadata.py
+    - name: Upload weekly metadata
+      uses: actions/upload-artifact@v3
+      with:
+        name: weekly-metadata-$(date +%Y%m%d)
+        path: ablation_metadata.json

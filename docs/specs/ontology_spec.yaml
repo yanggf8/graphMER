@@ -1,0 +1,352 @@
+# Ontology specification for GraphMER (Software Engineering domain)
+# Version: 0.1.0
+# Notes: Entities, relations, and constraints for Python + Java v0 scope.
+# Aligned with neurosymbolic architecture and dual MLM+MNM objectives.
+
+version: 0.1.0
+languages:
+  - python
+  - java
+expansion_roadmap:
+  v1: [javascript, typescript, go]
+
+entities:
+  Repository:
+    description: Source code repository or project root
+    attributes: [name, url, license, language_mix]
+  Module:
+    description: Python module or Java package
+    attributes: [name, path, visibility]
+  File:
+    description: Source file (.py, .java)
+    attributes: [path, size, encoding]
+  Class:
+    description: Class or enum type
+    attributes: [name, visibility, abstract, final]
+  Interface:
+    description: Interface/Protocol (Java interface, Python Protocol)
+    attributes: [name, visibility]
+  Function:
+    description: Top-level function (Python) or static function-like utility
+    attributes: [name, signature, visibility, async]
+  Method:
+    description: Class/instance method
+    attributes: [name, signature, visibility, static, abstract, async]
+  Variable:
+    description: Named variable or field
+    attributes: [name, type, visibility, constant]
+  Type:
+    description: Type or type alias/annotation
+    attributes: [name, generic, primitive]
+  API:
+    description: External API symbol (library function/class)
+    attributes: [name, library, version]
+  Library:
+    description: External dependency (package/module/library)
+    attributes: [name, version, license]
+  ExceptionType:
+    description: Exception/Throwable type
+    attributes: [name, hierarchy_level]
+  Test:
+    description: Test case or test function/method
+    attributes: [name, test_type, framework]
+  BuildTarget:
+    description: Build artifact or target (jar, wheel)
+    attributes: [name, type, output_path]
+  Annotation:
+    description: Decorator/annotation (Python @decorator, Java @Annotation)
+    attributes: [name, target_type]
+
+relations:
+  # Core structural relations
+  defines:
+    domain: [File]
+    range: [Class, Function, Variable, Type]
+    constraints:
+      functional: false
+      inverse: defined_in
+    description: File defines code entities
+  defined_in:
+    domain: [Class, Function, Variable, Type]
+    range: [File]
+    constraints:
+      functional: true
+      inverse: defines
+    description: Entity is defined in a specific file
+  declares:
+    domain: [Class, Interface]
+    range: [Method, Variable]
+    description: Class/Interface declares members
+  contains:
+    domain: [Module, File, Class]
+    range: [File, Module, Class, Function, Method]
+    description: Structural containment (module→file/module; file→class/function; class→method)
+  
+  # Inheritance and implementation
+  implements:
+    domain: [Class]
+    range: [Interface]
+    constraints:
+      acyclic: true
+    description: Class implements interface
+  inherits_from:
+    domain: [Class]
+    range: [Class]
+    constraints:
+      acyclic: true
+      antisymmetric: true
+    description: Class inheritance relationship
+  overrides:
+    domain: [Method]
+    range: [Method]
+    constraints:
+      requires_same_signature: true
+      parent_chain: true
+    description: Method overrides parent method
+  
+  # Call and usage relations
+  calls:
+    domain: [Function, Method]
+    range: [Function, Method, API]
+    description: Function/method calls another
+  invokes:
+    domain: [Function, Method]
+    range: [API]
+    description: Invokes external API
+  instantiates:
+    domain: [Function, Method]
+    range: [Class]
+    description: Creates instance of class
+  
+  # Import and dependency relations
+  imports:
+    domain: [Module, File]
+    range: [Module, Library]
+    description: Module imports another module/library
+  depends_on:
+    domain: [Module, Repository]
+    range: [Library]
+    description: Module/repo depends on external library
+  
+  # Data flow relations
+  uses:
+    domain: [Function, Method, Class]
+    range: [API, Type, Variable]
+    description: Uses external symbol or type
+  reads_from:
+    domain: [Function, Method]
+    range: [Variable]
+    description: Reads from variable
+  writes_to:
+    domain: [Function, Method]
+    range: [Variable]
+    description: Writes to variable
+  returns:
+    domain: [Function, Method]
+    range: [Type]
+    description: Function returns specific type
+  
+  # Exception handling
+  raises:
+    domain: [Function, Method]
+    range: [ExceptionType]
+    description: Function may raise exception
+  catches:
+    domain: [Function, Method]
+    range: [ExceptionType]
+    description: Function catches exception
+  
+  # Testing relations
+  tested_by:
+    domain: [Function, Class, Module]
+    range: [Test]
+    description: Entity is tested by test case
+  tests:
+    domain: [Test]
+    range: [Function, Class, Module]
+    constraints:
+      inverse: tested_by
+    description: Test case tests entity
+  
+  # Annotation relations
+  annotated_with:
+    domain: [Class, Function, Method, Variable]
+    range: [Annotation]
+    description: Entity has annotation/decorator
+  
+  # Build relations
+  produces:
+    domain: [Repository, Module]
+    range: [BuildTarget]
+    description: Produces build artifact
+
+constraints:
+  # Global ontology constraints for neurosymbolic alignment
+  multiplicities:
+    inherits_from:
+      max_per_node: 1  # single inheritance by default; language adapters may relax for Python mixins
+    implements:
+      max_per_node: 8  # allow multiple interfaces
+    defined_in:
+      max_per_node: 1  # each entity defined in exactly one file
+    overrides:
+      max_per_node: 1  # method overrides at most one parent method
+  
+  acyclicity:
+    - inherits_from
+    - implements
+    - contains  # prevent circular module containment
+  
+  domain_range:
+    # enforce domain/range membership on relations
+    enabled: true
+    strict_mode: true  # fail on violations during KG construction
+  
+  semantic_consistency:
+    # Ensure ontology-aligned constraints for neurosymbolic training
+    signature_matching:
+      overrides: true  # overridden methods must have compatible signatures
+      implements: true  # implemented interface methods must match signatures
+    
+    visibility_rules:
+      java:
+        overrides_must_match_visibility: true
+        interface_methods_public: true
+      python:
+        private_prefix_underscore: true
+    
+    type_consistency:
+      returns_type_check: true  # return type annotations must be valid
+      variable_type_check: true  # variable type annotations must be valid
+  
+  language_overrides:
+    python:
+      inherits_from:
+        allow_multiple: true  # allow multiple bases in Python, but treat linearized MRO for constraints
+      imports:
+        allow_star_imports: false  # discourage * imports for clarity
+    java:
+      implements:
+        require_all_methods: true  # must implement all interface methods
+      inherits_from:
+        single_inheritance_only: true
+
+triple_schema:
+  head: {id: string, type: string, attributes: object}
+  relation: {type: string, properties: object}
+  tail: {id: string, type: string, attributes: object}
+  qualifiers:
+    language: [python, java]
+    repository: string
+    commit: string
+    file: string
+    span: {start: int, end: int, line_start: int, line_end: int}
+    license: string
+    confidence: float  # for ML-extracted triples
+    source: [static_analysis, ml_extraction, manual_curation]
+  
+  # Support for Leafy Chain Graph Encoding
+  encoding_metadata:
+    anchor_tokens: array  # syntactic tokens from code/docs
+    leaf_entities: array  # semantic KG tail entities
+    relation_tokens: array  # special tokens for relations
+    positional_encoding: object  # for sequence position in leafy chain
+
+validation:
+  # Aligned with dual MLM+MNM training objectives
+  checks:
+    - name: type_check
+      description: Domain/Range type correctness for ontology alignment
+      threshold: 0.98
+      critical: true
+    - name: acyclicity_check
+      description: No cycles for acyclic relations (inheritance, containment)
+      threshold: 0.995
+      critical: true
+    - name: signature_check
+      description: Overrides must match signature and parent chain
+      threshold: 0.98
+      critical: true
+    - name: license_check
+      description: Only allowed licenses (MIT, Apache-2.0, BSD-2/3, MPL-2.0)
+      threshold: 1.0
+      critical: true
+    - name: constraint_satisfaction
+      description: All ontology constraints satisfied for neurosymbolic training
+      threshold: 0.99
+      critical: true
+    - name: provenance_check
+      description: All triples have valid provenance metadata
+      threshold: 0.95
+      critical: false
+    - name: coverage_check
+      description: Adequate coverage of entity types and relations
+      threshold: 0.85
+      critical: false
+  
+  # Quality gates for KG construction
+  quality_gates:
+    seed_kg:
+      min_triples: 20000
+      max_triples: 50000
+      entity_type_coverage: 0.9  # cover 90% of defined entity types
+      relation_type_coverage: 0.8  # cover 80% of defined relations
+    
+    full_kg:
+      constraint_violations: 0.01  # max 1% violations
+      orphaned_entities: 0.05  # max 5% entities without relations
+
+licensing:
+  include:
+    - MIT
+    - Apache-2.0
+    - BSD-2-Clause
+    - BSD-3-Clause
+    - MPL-2.0
+  exclude:
+    - GPL-2.0
+    - GPL-3.0
+    - AGPL-3.0
+    - LGPL-2.1
+    - LGPL-3.0
+    - Proprietary
+    - Unknown
+
+# Neurosymbolic training configuration
+training_alignment:
+  # Support for dual MLM+MNM objectives
+  mlm_targets:
+    - anchor_tokens  # syntactic code/doc tokens
+    - relation_tokens  # special relation tokens
+  
+  mnm_targets:
+    - leaf_entities  # KG tail entities for semantic learning
+  
+  negative_sampling:
+    strategy: type_aware  # respect entity types in negative sampling
+    constraint_aware: true  # avoid generating constraint-violating negatives
+    ratio: 2  # 2 negatives per positive
+  
+  regularization:
+    ontology_constraints: true  # penalize constraint violations
+    antisymmetric_penalty: 0.1  # for antisymmetric relations
+    acyclic_penalty: 0.2  # for acyclic relations
+
+# Evaluation alignment with eval_spec.yaml
+evaluation_tasks:
+  intrinsic:
+    - link_prediction  # MRR, Hits@k for relation completion
+    - type_disambiguation  # entity type prediction accuracy
+    - constraint_satisfaction  # ontology constraint adherence
+  
+  extrinsic:
+    - code_search_reranking  # semantic code search improvement
+    - call_graph_completion  # predict missing call relations
+    - dependency_inference  # infer missing dependencies
+
+# Version and compatibility
+compatibility:
+  data_spec_version: 0.1.0
+  eval_spec_version: 0.1.0
+  model_architecture: encoder_only_transformer
+  expected_params: ~80M

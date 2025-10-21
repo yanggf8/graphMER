@@ -1,0 +1,81 @@
+# Training profile: TPU-friendly (v3-8 or v4-8)
+# Goal: Keep model small, leverage TPU throughput; no reliance on large GPU memory
+
+run:
+  seed: 1337
+  epochs: 5
+  gradient_accumulation_steps: 16
+  log_interval: 50
+  eval_interval_steps: 1000
+  save_interval_steps: 4000
+  mixed_precision: bf16
+  deterministic: true
+
+hardware:
+  device: tpu
+  tpu_cores: 8
+  num_workers: 8
+
+model:
+  hidden_size: 768
+  num_layers: 12
+  num_heads: 12
+  intermediate_size: 3072
+  dropout: 0.1
+  positional_encoding: alibi
+  norm: rmsnorm
+  activation: swiglu
+  hgat:
+    enabled: true
+    relation_bias: true
+  use_rel_attention_bias: true  # Validated: 50% MNM improvement
+
+optimizer:
+  name: adamw
+  lr: 3.0e-4
+  weight_decay: 0.01
+  betas: [0.9, 0.98]
+  eps: 1e-8
+  scheduler:
+    name: cosine
+    warmup_steps: 1500
+
+training_data:
+  max_seq_len: 768
+  micro_batch_size: 2  # per-core
+  pack_sequences: true
+  short_to_long_curriculum:
+    enabled: true
+    schedule:
+      - {steps: 0, max_seq_len: 512}
+      - {steps: 15000, max_seq_len: 768}
+
+objectives:
+  mlm:
+    mask_prob: 0.15
+    span_mask_identifiers: true
+  mnm:
+    mask_prob: 0.20
+    type_consistent_negatives: 2
+    hard_negatives: 2
+
+encoding:
+  leaves_per_anchor:
+    positive: 2
+    negatives: 2
+  max_leaves_per_sequence: 10
+
+regularizers:
+  ontology_constraints:
+    antisymmetry_weight: 0.2
+    acyclicity_weight: 0.2
+  contrastive:
+    enabled: true
+    temperature: 0.07
+
+checkpointing:
+  activation_checkpointing: true
+
+notes:
+  - TPU-first: use bf16; shard data across cores; prefer XLA-friendly ops.
+  - Keep HGAT relation ops XLA-compatible; consider precomputing relation biases.

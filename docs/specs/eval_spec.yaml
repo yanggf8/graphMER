@@ -1,0 +1,33 @@
+# Eval Spec (v0)
+version: 0.1.0
+splits:
+  strategy: time-based
+  holdout: by-repo-owner
+intrinsic:
+  link_prediction:
+    metrics: [MRR, Hits@1, Hits@10]
+    constraints_checked: [domain_range, acyclicity]
+  disambiguation:
+    metrics: [accuracy]
+extrinsic:
+  code_search_reranking:
+    dataset: codesearchnet_like
+    metrics: [MRR@10]
+  call_graph_completion:
+    dataset: heldout_repos
+    metrics: [precision, recall, f1]
+  dependency_inference:
+    dataset: manifests_partial
+    metrics: [precision, recall, f1]
+thresholds:
+  link_prediction:
+    mrr: 0.52
+    hits@10: 0.78
+  disambiguation:
+    accuracy: 0.92
+  code_search_reranking:
+    mrr@10: 0.44
+  call_graph_completion:
+    f1: 0.63
+  dependency_inference:
+    f1: 0.70

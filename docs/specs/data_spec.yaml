@@ -1,0 +1,66 @@
+# Data Spec (v0)
+version: 0.1.0
+sources:
+  code:
+    licenses_allow: [MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, MPL-2.0]
+    languages: [python, java]
+    provenance_fields: [repo, commit, file, span, license]
+    repo_allowlist:
+      python:
+        - requests/requests
+        - psf/requests
+        - pallets/flask
+        - django/django
+        - numpy/numpy
+        - scipy/scipy
+        - scikit-learn/scikit-learn
+        - pandas-dev/pandas
+        - python/cpython
+        - pytest-dev/pytest
+        - pallets/click
+        - encode/httpx
+        - pydantic/pydantic
+        - fastapi/fastapi
+        - sqlalchemy/sqlalchemy
+      java:
+        - spring-projects/spring-boot
+        - spring-projects/spring-framework
+        - apache/commons-lang
+        - google/guava
+        - junit-team/junit5
+        - mockito/mockito
+        - apache/maven
+        - gradle/gradle
+        - elastic/elasticsearch
+        - apache/kafka
+        - ReactiveX/RxJava
+        - square/okhttp
+        - google/gson
+        - FasterXML/jackson-core
+        - apache/commons-io
+  docs:
+    types: [readme, api_docs, adr]
+triples:
+  schema:
+    head: {id: string, type: string}
+    relation: {type: string}
+    tail: {id: string, type: string}
+    qualifiers: {language: string, repo: string, commit: string, file: string, span: {start: int, end: int}, license: string}
+  quality:
+    validators:
+      - type_check: 
+          threshold: 0.98
+      - acyclicity_check:
+          threshold: 0.995
+tokenizer:
+  vocab_size: 32000
+  algorithm: bpe
+  identifier_rules:
+    split_camel: true
+    split_snake: true
+    keep_punct: [".", "(", ")", "[", "]", "{", "}", ":", "->", ","]
+encoding:
+  max_seq_len: 512
+  leaves_per_anchor:
+    positives: 2
+    negatives: 2
