@@ -1,0 +1,301 @@
+{
+  "version": "1.0",
+  "timestamp": 1761039840.63752,
+  "build_duration_sec": 0.315049409866333,
+  "source_dir": "data/raw/python_samples",
+  "files_processed": {
+    "python": 50,
+    "java": 0
+  },
+  "total_triples": 4681,
+  "validation": {
+    "domain_range_ok": 4663,
+    "total_triples": 4681,
+    "domain_range_ratio": 0.9961546678060244,
+    "inherits_acyclic": true,
+    "failures_preview": [
+      {
+        "triple": {
+          "head": "utils.read_config",
+          "relation": "calls",
+          "tail": "error",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/utils.py",
+            "module": "utils"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Function",
+          "Method"
+        ],
+        "expected_range": [
+          "Function",
+          "API",
+          "Method"
+        ],
+        "head_type": "Function",
+        "tail_type": "Module"
+      },
+      {
+        "triple": {
+          "head": "config.Settings.__init__",
+          "relation": "catches",
+          "tail": "config.ConfigError",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/config.py",
+            "module": "config"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Function",
+          "Method"
+        ],
+        "expected_range": [
+          "ExceptionType"
+        ],
+        "head_type": "Method",
+        "tail_type": "Class"
+      },
+      {
+        "triple": {
+          "head": "sample3",
+          "relation": "returns",
+          "tail": "type::<value>",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/sample3.py",
+            "module": "sample3"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Function",
+          "Method"
+        ],
+        "expected_range": [
+          "Type"
+        ],
+        "head_type": "Module",
+        "tail_type": "Type"
+      },
+      {
+        "triple": {
+          "head": "flask.HTTPException",
+          "relation": "inherits_from",
+          "tail": "flask.Exception",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/flask.py",
+            "module": "flask"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Class"
+        ],
+        "expected_range": [
+          "Class"
+        ],
+        "head_type": "Class",
+        "tail_type": "ExceptionType"
+      },
+      {
+        "triple": {
+          "head": "service.APIClient.get",
+          "relation": "calls",
+          "tail": "error",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/service.py",
+            "module": "service"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Function",
+          "Method"
+        ],
+        "expected_range": [
+          "Function",
+          "API",
+          "Method"
+        ],
+        "head_type": "Method",
+        "tail_type": "Module"
+      },
+      {
+        "triple": {
+          "head": "service.APIClient.post",
+          "relation": "calls",
+          "tail": "error",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/service.py",
+            "module": "service"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Function",
+          "Method"
+        ],
+        "expected_range": [
+          "Function",
+          "API",
+          "Method"
+        ],
+        "head_type": "Method",
+        "tail_type": "Module"
+      },
+      {
+        "triple": {
+          "head": "service.UserService.get_user",
+          "relation": "catches",
+          "tail": "service.ValueError",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/service.py",
+            "module": "service"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Function",
+          "Method"
+        ],
+        "expected_range": [
+          "ExceptionType"
+        ],
+        "head_type": "Method",
+        "tail_type": "Class"
+      },
+      {
+        "triple": {
+          "head": "dataframe.read_json",
+          "relation": "instantiates",
+          "tail": "dataframe.ValueError",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/dataframe.py",
+            "module": "dataframe"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Function",
+          "Method"
+        ],
+        "expected_range": [
+          "Class"
+        ],
+        "head_type": "Function",
+        "tail_type": "ExceptionType"
+      },
+      {
+        "triple": {
+          "head": "testing.TestRunner.run_tests",
+          "relation": "catches",
+          "tail": "testing.AssertionError",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/testing.py",
+            "module": "testing"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Function",
+          "Method"
+        ],
+        "expected_range": [
+          "ExceptionType"
+        ],
+        "head_type": "Method",
+        "tail_type": "Class"
+      },
+      {
+        "triple": {
+          "head": "testing.TestRunner.run_tests",
+          "relation": "catches",
+          "tail": "testing.Exception",
+          "qualifiers": {
+            "language": "python",
+            "file": "data/raw/python_samples/testing.py",
+            "module": "testing"
+          }
+        },
+        "reason": "domain_range_mismatch",
+        "expected_domain": [
+          "Function",
+          "Method"
+        ],
+        "expected_range": [
+          "ExceptionType"
+        ],
+        "head_type": "Method",
+        "tail_type": "Class"
+      }
+    ]
+  },
+  "file_hashes": {
+    "data/raw/python_samples/utils.py": "237f2337c3b3df65",
+    "data/raw/python_samples/database.py": "cfed6e41466422c6",
+    "data/raw/python_samples/requests.py": "0aa835fa5d672bf5",
+    "data/raw/python_samples/cli.py": "f9cb192003a17e78",
+    "data/raw/python_samples/sample1.py": "5b732ea7f00da6d3",
+    "data/raw/python_samples/sample2.py": "f6cfec56b96dde07",
+    "data/raw/python_samples/config.py": "40609eea4c657b3f",
+    "data/raw/python_samples/sample3.py": "79c4cdc1e6d1716c",
+    "data/raw/python_samples/orm.py": "d63f7e8db769cc4f",
+    "data/raw/python_samples/flask.py": "b55249d948e5b50f",
+    "data/raw/python_samples/service.py": "82feac55ef14c273",
+    "data/raw/python_samples/test_sample.py": "7cb6f1a4028c8cd0",
+    "data/raw/python_samples/dataframe.py": "adae6f862eb8acde",
+    "data/raw/python_samples/algorithms.py": "7b652f122d280ae3",
+    "data/raw/python_samples/testing.py": "e7f756cb2e366801",
+    "data/raw/python_samples/minilib/jsonutils.py": "0f1d6068565312f7",
+    "data/raw/python_samples/minilib/http.py": "d66f2c3287250dcd",
+    "data/raw/python_samples/pip/pkg_120_executor.py": "bec1fc8c8cd64478",
+    "data/raw/python_samples/pip/pkg_49_setters.py": "78bd5889d6105774",
+    "data/raw/python_samples/pip/pkg_162_scope.py": "7b231d7f1fa07202",
+    "data/raw/python_samples/pip/pkg_93__hypothesis.py": "592e32b0427098ca",
+    "data/raw/python_samples/pip/pkg_8_events.py": "e74fd392c810884e",
+    "data/raw/python_samples/pip/pkg_85__typing.py": "8154a29a2538e837",
+    "data/raw/python_samples/pip/pkg_15_serializer.py": "0a1b85826854d358",
+    "data/raw/python_samples/pip/pkg_23_decorators.py": "e4feda6e126d0106",
+    "data/raw/python_samples/pip/pkg_128_masked_reductions.py": "de1818ce1808413e",
+    "data/raw/python_samples/pip/pkg_1___init__.py": "b19dfcc333d6a75d",
+    "data/raw/python_samples/pip/pkg_126_datetimelike_accumulations.py": "042cbcec75ea2365",
+    "data/raw/python_samples/pip/pkg_142_numeric.py": "955a52a6c1bfebac",
+    "data/raw/python_samples/pip/pkg_138__utils.py": "466c0ecbac4d8606",
+    "data/raw/python_samples/pip/pkg_192_dataframe.py": "3359968d2ef4a582",
+    "data/raw/python_samples/pip/pkg_143_numpy_.py": "a3d1559205fc16d2",
+    "data/raw/python_samples/pip/pkg_181_category.py": "ffa2e942d04616c8",
+    "data/raw/python_samples/pip/pkg_193_dataframe_protocol.py": "2fd5b2f2f079a13b",
+    "data/raw/python_samples/pip/pkg_179_accessors.py": "31d3fcccd95241e7",
+    "data/raw/python_samples/pip/pkg_99___init__.py": "80c86da231f529d4",
+    "data/raw/python_samples/pip/pkg_16_tokens.py": "953408cd2570f0c8",
+    "data/raw/python_samples/pip/pkg_47_exceptions.py": "0020829a0d7dfaf0",
+    "data/raw/python_samples/pip/pkg_117_sample.py": "4043f36c599e3113",
+    "data/raw/python_samples/pip/pkg_185_frozen.py": "42e156db357cc2a6",
+    "data/raw/python_samples/pip/pkg_175_numba_.py": "5e37cf7d819b6098",
+    "data/raw/python_samples/pip/pkg_116_roperator.py": "963928de21e1066e",
+    "data/raw/python_samples/pip/pkg_53_ansitowin32.py": "bcf3586b73996f18",
+    "data/raw/python_samples/pip/pkg_132_take.py": "9ffa639fd994ed04",
+    "data/raw/python_samples/pip/pkg_200_concat.py": "43f3271c8292301b",
+    "data/raw/python_samples/pip/pkg_76_params.py": "4a79066b89cd7664",
+    "data/raw/python_samples/pip/pkg_20__textwrap.py": "04e69ed1143abe0d",
+    "data/raw/python_samples/pip/pkg_102_compressors.py": "19d0d674acd6aa42",
+    "data/raw/python_samples/pip/pkg_131_replace.py": "43ab8c767e1e6da4",
+    "data/raw/python_samples/pip/pkg_7_error.py": "021f73fada072546"
+  },
+  "ontology_version": "0.1.0",
+  "outputs": {
+    "triples": "data/kg/enhanced_multilang.jsonl",
+    "entities": "data/kg/enhanced_multilang.entities.jsonl"
+  }
+}

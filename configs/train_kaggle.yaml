@@ -1,0 +1,113 @@
+# GraphMER-SE Kaggle GPU Training Configuration
+# Target: Tesla T4 (16GB VRAM) or P100 (16GB VRAM)
+# Session: 12 hours max, 30 GPU hours/week quota
+# Storage: 20GB output, 500 file limit
+
+run:
+  seed: 1337
+  epochs: 5
+  gradient_accumulation_steps: 1  # Not needed with 64 batch size
+  log_interval: 50
+  eval_interval_steps: 500
+  save_interval_steps: 1000  # Conservative for 500 file limit
+  mixed_precision: fp16  # T4/P100 support FP16
+  deterministic: true
+  max_steps: null  # Set via command line
+
+hardware:
+  device: cuda
+  num_workers: 4  # Kaggle provides 4 CPU cores
+
+model:
+  hidden_size: 768
+  num_layers: 12
+  num_heads: 12
+  intermediate_size: 3072
+  dropout: 0.1
+  positional_encoding: alibi
+  norm: rmsnorm
+  activation: swiglu
+  hgat:
+    enabled: true
+    relation_bias: true
+  use_rel_attention_bias: true
+
+optimizer:
+  name: adamw
+  lr: 3.0e-4
+  weight_decay: 0.01
+  betas: [0.9, 0.98]
+  eps: 1e-8
+  scheduler:
+    name: cosine
+    warmup_steps: 1500
+
+training_data:
+  max_seq_len: 768
+  micro_batch_size: 64  # Leverage 16GB VRAM (2x local GPU)
+  pack_sequences: true
+  short_to_long_curriculum:
+    enabled: true
+    schedule:
+      - {steps: 0, max_seq_len: 512}
+      - {steps: 15000, max_seq_len: 768}
+
+objectives:
+  mlm:
+    mask_prob: 0.15
+    span_mask_identifiers: true
+  mnm:
+    mask_prob: 0.20
+    type_consistent_negatives: 2
+    hard_negatives: 2
+
+encoding:
+  leaves_per_anchor:
+    positive: 2
+    negatives: 2
+  max_leaves_per_sequence: 10
+
+regularizers:
+  ontology_constraints:
+    antisymmetry_weight: 0.2
+    acyclicity_weight: 0.2
+  contrastive:
+    enabled: true
+    temperature: 0.07
+
+checkpointing:
+  activation_checkpointing: false  # 16GB is sufficient
+  save_total_limit: 5  # Keep only last 5 checkpoints (file count limit)
+  output_dir: /kaggle/working/checkpoints  # Kaggle output directory
+  load_best_model_at_end: true
+
+paths:
+  # Kaggle dataset paths (adjust based on your dataset name)
+  kg_triples: /kaggle/input/graphmer-kg/enhanced_multilang.jsonl
+  kg_entities: /kaggle/input/graphmer-kg/enhanced_multilang.entities.jsonl
+  ontology_spec: /kaggle/input/graphmer-kg/ontology_spec.yaml
+  output_dir: /kaggle/working/outputs
+  metrics_file: /kaggle/working/train_metrics.csv
+
+logging:
+  wandb:
+    enabled: false  # Set to true if you configure W&B API key
+    project: graphmer-se
+    entity: null  # Your W&B username
+  tensorboard:
+    enabled: true
+    log_dir: /kaggle/working/tensorboard_logs
+
+# Kaggle-specific optimizations
+kaggle:
+  # File count management (500 file limit)
+  cleanup_old_checkpoints: true
+  compress_outputs: true  # Compress logs/metrics on completion
+
+  # Session management (12-hour limit)
+  auto_checkpoint_interval: 3600  # Checkpoint every hour (safety)
+  session_timeout_warning: 11  # Warn at 11 hours
+
+  # Storage optimization (20GB limit)
+  max_output_size_gb: 15  # Leave 5GB buffer
+  cleanup_temp_files: true

@@ -3,6 +3,7 @@ from pathlib import Path
 import argparse
 import sys
 import yaml
+import os
 
 # Ensure project root on sys.path
 ROOT = Path(__file__).resolve().parent.parent
@@ -24,7 +25,21 @@ def main():
     parser.add_argument("--rel_bias", type=str, choices=["true", "false", "config"], default="config", help="Override use_rel_attention_bias (true/false) or use value from config")
     parser.add_argument("--limit", type=int, default=32, help="Max samples from KG dataset builder")
     parser.add_argument("--chunk_size", type=int, default=2, help="Chunk size for KG dataset builder")
+    parser.add_argument("--modelscope", action="store_true", help="Run in ModelScope environment with optimized settings")
     args = parser.parse_args()
+
+    # Check if running in ModelScope environment
+    is_modelscope_env = args.modelscope or os.environ.get('MODELSCOPE_ENV') or os.environ.get('MODELSCOPE_STAGE')
+    
+    if is_modelscope_env:
+        print("Running in ModelScope environment")
+        # Use optimized settings for ModelScope
+        if args.config == "configs/train_cpu.yaml":
+            # If default config was used, check if TPU config exists for ModelScope
+            modelscope_config_path = Path("configs/modelscope_config.yaml")
+            if modelscope_config_path.exists():
+                args.config = str(modelscope_config_path)
+                print(f"Using ModelScope config: {args.config}")
 
     config = load_config(Path(args.config))
     print("Loaded training config keys:", list(config.keys()))
