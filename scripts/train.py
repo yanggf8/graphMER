@@ -250,6 +250,21 @@ def main():
     # TPU-specific: wait for all cores to finish
     if xm is not None and device.type == "xla":
         xm.wait_device_ops()
+
+    # Save model checkpoint
+    checkpoint_dir = Path("logs/checkpoints")
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = checkpoint_dir / "model_final.pt"
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'mlm_head_state_dict': mlm_head.state_dict(),
+        'mnm_head_state_dict': mnm_head.state_dict(),
+        'optimizer_state_dict': optim.state_dict(),
+        'config': config,
+        'steps': steps,
+        'seed': seed,
+    }, checkpoint_path)
+    print(f"Model checkpoint saved to {checkpoint_path}")
     
     # Update trends.json with hardware-specific information
     manifest_path = Path("data/kg/manifest.json")
@@ -295,7 +310,8 @@ def update_trends_json(config, device_type, ds, total_triples, domain_range_rati
         if early_val_acc != 0:
             val_acc_improvement = (final_val_acc - early_val_acc) / abs(early_val_acc)
         else:
-            val_acc_improvement = float('inf') if final_val_acc != 0 else 0
+                # Use absolute improvement when early accuracy is 0, to avoid infinity
+            val_acc_improvement = final_val_acc - early_val_acc
     
     trends_path = Path("trends.json")
     run_info = {
