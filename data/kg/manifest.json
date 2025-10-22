@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "timestamp": 1761039840.63752,
-  "build_duration_sec": 0.315049409866333,
+  "timestamp": 1761143836.3980944,
+  "build_duration_sec": 0.21349763870239258,
   "source_dir": "data/raw/python_samples",
   "files_processed": {
     "python": 50,
@@ -32,8 +32,8 @@
         ],
         "expected_range": [
           "Function",
-          "API",
-          "Method"
+          "Method",
+          "API"
         ],
         "head_type": "Function",
         "tail_type": "Module"
@@ -121,8 +121,8 @@
         ],
         "expected_range": [
           "Function",
-          "API",
-          "Method"
+          "Method",
+          "API"
         ],
         "head_type": "Method",
         "tail_type": "Module"
@@ -145,8 +145,8 @@
         ],
         "expected_range": [
           "Function",
-          "API",
-          "Method"
+          "Method",
+          "API"
         ],
         "head_type": "Method",
         "tail_type": "Module"
