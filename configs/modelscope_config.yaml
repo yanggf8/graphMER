@@ -17,10 +17,10 @@ hardware:
   pin_memory: true
 
 model:
-  hidden_size: 256  # Reduced for ModelScope memory constraints
-  num_layers: 4     # Reduced for ModelScope memory constraints
-  num_heads: 4
-  intermediate_size: 1024
+  hidden_size: 768  # Restored to baseline for proper foundation model
+  num_layers: 12    # Restored to baseline for proper foundation model  
+  num_heads: 12
+  intermediate_size: 3072
   dropout: 0.1
   positional_encoding: alibi  # CPU-friendly
   norm: rmsnorm
@@ -41,14 +41,14 @@ optimizer:
     warmup_steps: 1000
 
 training_data:
-  max_seq_len: 256   # Reduced for ModelScope memory constraints
+  max_seq_len: 512   # Restored to baseline for proper foundation model
   micro_batch_size: 1
   pack_sequences: true
   short_to_long_curriculum:
     enabled: true
     schedule:
-      - {steps: 0, max_seq_len: 128}
-      - {steps: 1000, max_seq_len: 256}
+      - {steps: 0, max_seq_len: 384}
+      - {steps: 1000, max_seq_len: 512}
 
 objectives:
   mlm:
@@ -78,6 +78,7 @@ checkpointing:
   gradient_checkpointing: true
 
 notes:
-  - ModelScope-optimized config with reduced model size for resource constraints
-  - Increased learning rate for faster convergence in time-limited environments
-  - Curriculum learning helps with training stability on smaller resources
+  - ModelScope config with FULL baseline dimensions (768/12/12/3072) - NOT reduced!
+  - Fixed: training script now reads all model dimensions from config
+  - Increased learning rate (0.0002) for faster convergence
+  - Curriculum learning: 384→512 seq length ramp-up for training stability

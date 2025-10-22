@@ -157,9 +157,26 @@ def main():
         use_rel_bias = False
     else:
         use_rel_bias = bool(enc_cfg.get("use_rel_attention_bias", True))
-    model = TinyEncoder(vocab_size=vocab_size, d_model=enc_cfg.get("hidden_size", 256), n_heads=4, n_layers=4, d_ff=1024, num_relations=num_rel, use_rel_attention_bias=use_rel_bias)
-    mlm_head = MLMHead(d_model=enc_cfg.get("hidden_size", 256), vocab_size=vocab_size)
-    mnm_head = MNMHead(d_model=enc_cfg.get("hidden_size", 256), vocab_size=vocab_size)
+    
+    # Read model dimensions from config (not hardcoded!)
+    hidden_size = enc_cfg.get("hidden_size", 768)  # Default to baseline 768
+    num_layers = enc_cfg.get("num_layers", 12)     # Default to baseline 12
+    num_heads = enc_cfg.get("num_heads", 12)       # Default to baseline 12
+    intermediate_size = enc_cfg.get("intermediate_size", 3072)  # Default to baseline 3072
+    
+    # Log model architecture for verification
+    print(f"Model Architecture:")
+    print(f"  Hidden size: {hidden_size}")
+    print(f"  Num layers: {num_layers}")
+    print(f"  Num heads: {num_heads}")
+    print(f"  Intermediate size: {intermediate_size}")
+    print(f"  Vocab size: {vocab_size}")
+    print(f"  Num relations: {num_rel}")
+    print(f"  Relation attention bias: {use_rel_bias}")
+    
+    model = TinyEncoder(vocab_size=vocab_size, d_model=hidden_size, n_heads=num_heads, n_layers=num_layers, d_ff=intermediate_size, num_relations=num_rel, use_rel_attention_bias=use_rel_bias)
+    mlm_head = MLMHead(d_model=hidden_size, vocab_size=vocab_size)
+    mnm_head = MNMHead(d_model=hidden_size, vocab_size=vocab_size)
     model.to(device)
     mlm_head.to(device)
     mnm_head.to(device)

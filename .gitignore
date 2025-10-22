@@ -20,55 +20,52 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual environments
-venv/
-ENV/
-env/
+# PyTorch
+*.pth
+*.pt
+
+# Logs and outputs
+logs/
+*.log
+*.csv
+*.json
+*.png
+*.pdf
+
+# Data
+data/kg/*.jsonl
+data/kg/*.entities.jsonl
+data/kg/manifest.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*~
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb_checkpoints
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.benchmarks/
-
-# Logs
-*.log
-logs/*.csv
-logs/*.png
-logs/*.json
-
-# Temporary files
-tmp_pkgs/
-test/
-colab_deploy/
-*.tar.gz
+*.sublime-*
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Data (too large for git)
-data/raw/
-data/kg/*.jsonl
-data/kg/*.json
+# Archive and obsolete
+archive/
+*.tar.gz
+*.zip
 
-# Checkpoints and models
-checkpoints/
-*.pt
-*.pth
-*.ckpt
-
-# Keep specific files
-!data/kg/manifest.json
-!.gitkeep
+# Deployment artifacts
+colab_deploy/
+kaggle_deploy/
+tmp_pkgs/
+*.ipynb
+upload_to_*
+*_config.py
+checksums.txt
+policy.json
+*.Zone.Identifier
