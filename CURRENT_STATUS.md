@@ -46,6 +46,13 @@ GraphMER-SE is a neurosymbolic encoder for software engineering that combines co
 ## Training Status
 
 ### Completed
+- ✅ **500-step baseline** with 85M model
+  - Loss reduction: 51.2% (0.1872 → 0.0913)
+  - MLM peak accuracy: 81.82%
+  - MNM peak accuracy: 29.03%
+  - Training time: ~7-8 minutes (CPU)
+  - Status: Production baseline established
+
 - ✅ **100-step baseline** with 85M model
   - Loss reduction: 32.0%
   - MLM peak accuracy: 81.82%
@@ -53,8 +60,9 @@ GraphMER-SE is a neurosymbolic encoder for software engineering that combines co
   - Status: First correct baseline established
 
 ### In Progress
-- 📋 **500-step baseline** with 85M model (recommended next)
+- 📋 **1000+ step training** with 85M model for comprehensive baseline
 - 📋 Full dataset evaluation (29,174 triples available)
+- 📋 Scaling experiments with new config architecture
 
 ### Archived (3.2M Model Results)
 - ⚠️ 500-step training (45.3% loss reduction)
@@ -102,12 +110,20 @@ All configs now use correct baseline dimensions (768/12/12/3072):
    - Mixed precision: FP16
    - Expected: 5-8 steps/sec
 
-3. **`configs/train_tpu.yaml`**
+3. **`configs/train_scaling.yaml`** ✅ NEW
+   - Target: Large-scale production training
+   - Architecture: Same baseline 768/12/12/3072
+   - Batch size: 4 (micro), 32 gradient accumulation
+   - Mixed precision: BF16
+   - Max steps: 50,000 with curriculum learning
+   - Optimized for: Extended training runs, evaluation benchmarks
+
+4. **`configs/train_tpu.yaml`**
    - Target: Colab TPU v2
    - Batch size: 128 per core
    - Mixed precision: BF16
 
-4. **`configs/train_kaggle.yaml`**
+5. **`configs/train_kaggle.yaml`**
    - Target: Kaggle GPU environment
    - Optimized for platform constraints
 
@@ -130,6 +146,8 @@ All configs now use correct baseline dimensions (768/12/12/3072):
 - ✅ Hits@k evaluation
 - ✅ Per-task accuracy tracking
 - ✅ Loss decomposition (MLM + MNM)
+- ✅ Config-aware evaluation (reads model dimensions from config)
+- ✅ Checkpoint compatibility (proper state_dict key handling)
 
 ### Data Pipeline
 - ✅ KG builder (Python + Java parsers)
@@ -301,11 +319,17 @@ python scripts/train.py \
 
 ### Quick Commands
 ```bash
-# Run training
-python scripts/train.py --config configs/train_cpu.yaml --steps 500
+# Run 500-step baseline training
+python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000 --chunk_size 10
 
-# Run evaluation  
-python scripts/eval.py --config configs/train_cpu.yaml
+# Run 1000+ step extended training (recommended for production)
+python scripts/train.py --config configs/train_cpu.yaml --steps 1000 --limit 32 --chunk_size 2
+
+# Run evaluation with proper config dimensions
+python scripts/eval.py --config configs/train_cpu.yaml --limit 32 --chunk_size 2
+
+# Run scaling experiment
+python scripts/train.py --config configs/train_scaling.yaml
 
 # Build KG
 python scripts/build_kg.py

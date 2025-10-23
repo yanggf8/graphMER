@@ -13,6 +13,8 @@ def main():
     parser.add_argument("--config", type=str, default="configs/train_cpu.yaml")
     parser.add_argument("--checkpoint", type=str, help="Model checkpoint path")
     parser.add_argument("--output", type=str, default="logs/eval_results.json")
+    parser.add_argument("--limit", type=int, default=32, help="Max samples from KG dataset builder")
+    parser.add_argument("--chunk_size", type=int, default=2, help="Chunk size for KG dataset builder")
     args = parser.parse_args()
     
     import torch
@@ -31,7 +33,7 @@ def main():
     # Build dataset
     triples_path = Path("data/kg/seed_python.jsonl")
     code_path = Path("data/raw/python_samples/sample1.py")
-    ds = build_dataset_from_kg(triples_path, code_path, max_seq_len=128, limit=64, chunk_size=3)
+    ds = build_dataset_from_kg(triples_path, code_path, max_seq_len=128, limit=int(args.limit), chunk_size=int(args.chunk_size))
     
     # Create validation split
     n = len(ds)
@@ -53,15 +55,21 @@ def main():
     num_rel = max(1, len(getattr(ds, 'rel_stoi', {"<none>": 0})))
     enc_cfg = config.get("model", {})
     
+    # Read model dimensions from config (not hardcoded!)
+    hidden_size = enc_cfg.get("hidden_size", 768)  # Default to baseline 768
+    num_layers = enc_cfg.get("num_layers", 12)     # Default to baseline 12
+    num_heads = enc_cfg.get("num_heads", 12)       # Default to baseline 12
+    intermediate_size = enc_cfg.get("intermediate_size", 3072)  # Default to baseline 3072
+
     model = TinyEncoder(
         vocab_size=vocab_size, 
-        d_model=enc_cfg.get("hidden_size", 256), 
-        n_heads=4, n_layers=4, d_ff=1024, 
+        d_model=hidden_size, 
+        n_heads=num_heads, n_layers=num_layers, d_ff=intermediate_size, 
         num_relations=num_rel, 
         use_rel_attention_bias=enc_cfg.get("use_rel_attention_bias", True)
     )
-    mlm_head = MLMHead(d_model=enc_cfg.get("hidden_size", 256), vocab_size=vocab_size)
-    mnm_head = MNMHead(d_model=enc_cfg.get("hidden_size", 256), vocab_size=vocab_size)
+    mlm_head = MLMHead(d_model=hidden_size, vocab_size=vocab_size) 
+    mnm_head = MNMHead(d_model=hidden_size, vocab_size=vocab_size)
     
     model.to(device)
     mlm_head.to(device) 
@@ -70,9 +78,9 @@ def main():
     # Load checkpoint if provided
     if args.checkpoint and Path(args.checkpoint).exists():
         checkpoint = torch.load(args.checkpoint, map_location=device)
-        model.load_state_dict(checkpoint['model'])
-        mlm_head.load_state_dict(checkpoint['mlm_head'])
-        mnm_head.load_state_dict(checkpoint['mnm_head'])
+        model.load_state_dict(checkpoint['model_state_dict'])
+        mlm_head.load_state_dict(checkpoint['mlm_head_state_dict'])
+        mnm_head.load_state_dict(checkpoint['mnm_head_state_dict'])
         print(f"Loaded checkpoint: {args.checkpoint}")
     
     # Run evaluation

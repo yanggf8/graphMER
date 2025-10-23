@@ -29,14 +29,20 @@
 ### Quick Commands
 
 ```bash
-# Run validated baseline
-python scripts/train.py --config configs/train_cpu.yaml --steps 500
+# Run validated baseline (500 steps)
+python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000 --chunk_size 10
+
+# Run extended training (1000+ steps, recommended)
+python scripts/train.py --config configs/train_cpu.yaml --steps 1000 --limit 32 --chunk_size 2
 
 # Build knowledge graph
 python scripts/build_kg_enhanced.py --source_dir data/raw/python_samples
 
-# Evaluate model
-python scripts/eval.py
+# Evaluate model (config-aware)
+python scripts/eval.py --config configs/train_cpu.yaml --limit 32 --chunk_size 2
+
+# Run scaling experiment
+python scripts/train.py --config configs/train_scaling.yaml
 
 # Run tests
 python -m pytest tests/ -v
@@ -57,18 +63,21 @@ python -m pytest tests/ -v
 
 ### Next Steps
 
-1. **Scale Training**: 1000+ steps for production baseline
-2. **Expand Knowledge Graph**: Scale to 50k+ triples
-3. **Comprehensive Evaluation**: Larger test datasets
-4. **Documentation**: Update paper with validated results
+1. **Scale Training**: 1000+ steps for production baseline (scripts updated)
+2. **Scaling Experiments**: Test train_scaling.yaml config for long runs
+3. **Expand Knowledge Graph**: Scale to 50k+ triples
+4. **Comprehensive Evaluation**: Use config-aware eval.py with larger datasets
+5. **Documentation**: Update paper with validated results
 
 ### Key Files
 
-- `README.md` - Updated with current status
+- `README.md` - Updated with current status and extended training instructions
 - `docs/HANDOVER.md` - Production-ready handover guide
 - `85M_BASELINE_500_STEPS.md` - Detailed baseline results
 - `configs/train_cpu.yaml` - Validated CPU training config
+- `configs/train_scaling.yaml` - NEW: Large-scale production training config
 - `scripts/train.py` - Main training script
+- `scripts/eval.py` - Config-aware evaluation script (updated)
 - `data/kg/manifest.json` - Knowledge graph metadata
 
 ## Status: Ready for Production Use ✅

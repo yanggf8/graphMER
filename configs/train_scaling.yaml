@@ -1,0 +1,30 @@
+model:
+  hidden_size: 768
+  num_attention_heads: 12
+  num_hidden_layers: 12
+  intermediate_size: 3072
+  use_rel_attention_bias: true
+
+hardware:
+  device: auto
+  mixed_precision: bf16
+  gradient_accumulation_steps: 32
+
+training_data:
+  micro_batch_size: 4
+  max_seq_len: 768
+  pack_sequences: true
+
+run:
+  learning_rate: 2e-4
+  warmup_steps: 1000
+  max_steps: 50000
+  save_steps: 5000
+  eval_steps: 1000
+  logging_steps: 100
+
+optimizer:
+  type: adamw
+  weight_decay: 0.01
+  beta1: 0.9
+  beta2: 0.999

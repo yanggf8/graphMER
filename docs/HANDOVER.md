@@ -16,9 +16,14 @@
 
 ### Quick Start Commands
 
-**Run Validated Baseline**:
+**Run Validated Baseline (500 steps)**:
 ```bash
 python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000 --chunk_size 10
+```
+
+**Run Extended Training (1000+ steps, recommended)**:
+```bash
+python scripts/train.py --config configs/train_cpu.yaml --steps 1000 --limit 32 --chunk_size 2
 ```
 
 **Build Knowledge Graph**:
@@ -26,9 +31,14 @@ python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000
 python scripts/build_kg_enhanced.py --source_dir data/raw/python_samples
 ```
 
-**Evaluate Model**:
+**Evaluate Model (config-aware)**:
 ```bash
-python scripts/eval.py
+python scripts/eval.py --config configs/train_cpu.yaml --limit 32 --chunk_size 2
+```
+
+**Run Scaling Experiment**:
+```bash
+python scripts/train.py --config configs/train_scaling.yaml
 ```
 
 ## Architecture Overview
@@ -72,17 +82,25 @@ python scripts/eval.py
   - `parsing/` - Python/Java parsers
   - `kg/` - Knowledge graph builder
   - `ontology/` - KG validator
-- `configs/` - Training configurations (CPU, GPU, TPU, Kaggle)
+- `configs/` - Training configurations
+  - `train_cpu.yaml` - CPU training (validated)
+  - `train_gpu.yaml` - GPU training (RTX 3050)
+  - `train_scaling.yaml` - NEW: Large-scale production training
+  - `train_tpu.yaml` - TPU training (Colab)
+  - `train_kaggle.yaml` - Kaggle GPU
 - `scripts/` - Training and evaluation scripts
+  - `train.py` - Main training script
+  - `eval.py` - Config-aware evaluation (updated)
 - `data/kg/` - Generated knowledge graph (29k+ triples)
 - `docs/` - Specifications and documentation
 
 ## Next Steps
 
-1. **Scale Training**: Run 1000+ steps for production baseline
-2. **Platform Testing**: Validate on ModelScope/Colab for longer runs
-3. **Evaluation**: Run comprehensive evaluation on larger datasets
-4. **Knowledge Graph Expansion**: Scale to 50k+ triples
+1. **Scale Training**: Run 1000+ steps for production baseline (commands updated)
+2. **Scaling Experiments**: Test train_scaling.yaml for long production runs
+3. **Platform Testing**: Validate on ModelScope/Colab for longer runs
+4. **Evaluation**: Use config-aware eval.py with proper dimensions on larger datasets
+5. **Knowledge Graph Expansion**: Scale to 50k+ triples
 
 ## Validation Commands
 

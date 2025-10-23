@@ -109,6 +109,12 @@ python scripts/eval.py
    python scripts/train.py --config configs/train_cpu.yaml --steps 500
    ```
 
+2. **Extended CPU Training (1000+ Steps for Meaningful Metrics):**
+   For more meaningful performance metrics, baseline establishment, and production validation, it's recommended to run for 1000 or more steps. This is a documented approach in the project for assessing model convergence.
+   ```bash
+   python scripts/train.py --config configs/train_cpu.yaml --steps 1000 --limit 32 --chunk_size 2
+   ```
+
 2. **Google Colab** (Free Tier):
    - T4 GPU available (limited hours)
    - Use `configs/train_tpu.yaml` for TPU access
