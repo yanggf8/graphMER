@@ -1,0 +1,8 @@
+# Core and test dependencies for GraphMER-SE
+pyyaml>=6.0
+pytest>=7.4
+jsonschema>=4.0
+numpy>=1.21.0
+tokenizers>=0.13.0
+# CPU-only torch wheels on non-Windows by default
+torch>=2.1; platform_system != "Windows"

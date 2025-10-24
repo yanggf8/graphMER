@@ -81,6 +81,53 @@ python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000
 
 ## Quickstart
 
+## Development setup
+
+## GPU Training
+
+1) Verify CUDA
+- python3 -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('Device count:', torch.cuda.device_count() if torch.cuda.is_available() else 0); print('Device name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
+
+2) Install GPU PyTorch and deps
+- python3 -m pip install --index-url https://download.pytorch.org/whl/cu121 torch torchvision torchaudio
+- python3 -m pip install -r requirements.txt
+
+3) Train (baseline on GPU)
+- CUDA_VISIBLE_DEVICES=0 python3 scripts/train_v2.py --config configs/train_v2_gpu.yaml --steps 1000 --max_samples 5000 --amp --micro_batch_size 4 --grad_accum_steps 16 --save_every_steps 200
+
+4) Monitor
+- tail -f logs/train_v2_metrics.csv
+- watch -n 2 nvidia-smi
+
+5) Evaluate (intermediate or final)
+- python3 scripts/eval_comprehensive.py --checkpoint logs/checkpoints/model_v2_step0200_*.pt --disambiguation data/benchmarks/disamb.jsonl --temperature 0.8 --topk-prefilter 100
+
+6) OOM fallback
+- CUDA_VISIBLE_DEVICES=0 python3 scripts/train_v2.py --config configs/train_v2_gpu.yaml --steps 1000 --max_samples 5000 --amp --micro_batch_size 2 --grad_accum_steps 32 --save_every_steps 200
+
+
+Option A) Pip + requirements.txt
+- python3 -m pip install -r requirements.txt
+- python3 -m pytest -q
+
+Option B) Makefile
+- make install
+- make test
+
+Option C) Docker
+- docker build -t graphmer-se .
+- docker run --rm -v "$PWD":/workspace graphmer-se
+
+Option D) VS Code Dev Containers
+- Open folder in VS Code and select "Reopen in Container"
+- The container runs make install automatically
+
+Notes
+- Python 3.10 recommended (CI runs on 3.10)
+- CPU-only torch wheels are used by default on non-Windows
+- For TPU extras: python -m pip install .[tpu]
+
+
 1) Build and validate a small seed KG
 ```
 python scripts/build_kg.py

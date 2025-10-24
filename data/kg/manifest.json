@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "timestamp": 1761143836.3980944,
-  "build_duration_sec": 0.21349763870239258,
+  "timestamp": 1761236623.6914806,
+  "build_duration_sec": 0.15548419952392578,
   "source_dir": "data/raw/python_samples",
   "files_processed": {
     "python": 50,
@@ -27,13 +27,13 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Function",
-          "Method"
+          "Method",
+          "Function"
         ],
         "expected_range": [
-          "Function",
+          "API",
           "Method",
-          "API"
+          "Function"
         ],
         "head_type": "Function",
         "tail_type": "Module"
@@ -51,8 +51,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Function",
-          "Method"
+          "Method",
+          "Function"
         ],
         "expected_range": [
           "ExceptionType"
@@ -73,8 +73,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Function",
-          "Method"
+          "Method",
+          "Function"
         ],
         "expected_range": [
           "Type"
@@ -116,13 +116,13 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Function",
-          "Method"
+          "Method",
+          "Function"
         ],
         "expected_range": [
-          "Function",
+          "API",
           "Method",
-          "API"
+          "Function"
         ],
         "head_type": "Method",
         "tail_type": "Module"
@@ -140,13 +140,13 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Function",
-          "Method"
+          "Method",
+          "Function"
         ],
         "expected_range": [
-          "Function",
+          "API",
           "Method",
-          "API"
+          "Function"
         ],
         "head_type": "Method",
         "tail_type": "Module"
@@ -164,8 +164,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Function",
-          "Method"
+          "Method",
+          "Function"
         ],
         "expected_range": [
           "ExceptionType"
@@ -186,8 +186,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Function",
-          "Method"
+          "Method",
+          "Function"
         ],
         "expected_range": [
           "Class"
@@ -208,8 +208,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Function",
-          "Method"
+          "Method",
+          "Function"
         ],
         "expected_range": [
           "ExceptionType"
@@ -230,8 +230,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Function",
-          "Method"
+          "Method",
+          "Function"
         ],
         "expected_range": [
           "ExceptionType"

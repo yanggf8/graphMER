@@ -8,9 +8,9 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
-    - run: pip install .
-    - run: python -m pytest tests/
+        python-version: '3.10'
+    - run: pip install -r requirements.txt
+    - run: python -m pytest -q
     
   validate-production:
     runs-on: ubuntu-latest
@@ -19,8 +19,8 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
-    - run: pip install .
+        python-version: '3.10'
+    - run: pip install -r requirements.txt
     - name: Verify ablation artifacts exist
       run: |
         test -f logs/train_metrics_A.csv

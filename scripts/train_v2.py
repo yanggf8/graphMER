@@ -5,6 +5,7 @@ import argparse
 import sys
 import yaml
 import os
+from datetime import datetime
 
 # Ensure project root on sys.path
 ROOT = Path(__file__).resolve().parent.parent
@@ -25,6 +26,10 @@ def main():
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     parser.add_argument("--max_samples", type=int, default=None, help="Max samples to use (None = all)")
     parser.add_argument("--use_full_kg", action="store_true", help="Use full KG dataset (all 29k triples)")
+    parser.add_argument("--micro_batch_size", type=int, default=2, help="Per-step micro batch size")
+    parser.add_argument("--grad_accum_steps", type=int, default=8, help="Gradient accumulation steps")
+    parser.add_argument("--amp", action="store_true", help="Enable mixed precision (AMP)")
+    parser.add_argument("--save_every_steps", type=int, default=0, help="Save checkpoint every N steps (0=only final)")
     args = parser.parse_args()
 
     config = load_config(Path(args.config))
@@ -53,11 +58,20 @@ def main():
     from src.training.metrics import masked_token_accuracy
 
     # Build dataset from real KG
-    triples_path = Path("data/kg/seed_python.jsonl")
+    # Prefer seed_python.jsonl; fallback to enhanced_multilang.jsonl if present
+    candidates = [
+        Path("data/kg/seed_python.jsonl"),
+        Path("data/kg/enhanced_multilang.jsonl"),
+    ]
+    triples_path = next((p for p in candidates if p.exists()), None)
     
-    if not triples_path.exists():
-        print(f"Error: Triples file not found: {triples_path}")
+    if triples_path is None:
+        print("Error: No triples file found. Expected one of:")
+        for p in candidates:
+            print(" -", p)
         sys.exit(1)
+    else:
+        print(f"Using triples file: {triples_path}")
     
     if args.use_full_kg:
         print("Building dataset from FULL KG (all triples)...")
@@ -108,8 +122,8 @@ def main():
     print(f"Train samples: {len(train_ds)}, Val samples: {len(val_ds)}")
     
     # DataLoaders
-    dl = DataLoader(train_ds, batch_size=1, shuffle=True, collate_fn=lambda b: b[0])
-    val_dl = DataLoader(val_ds, batch_size=1, shuffle=False, collate_fn=lambda b: b[0])
+    dl = DataLoader(train_ds, batch_size=args.micro_batch_size, shuffle=True, collate_fn=lambda b: b[0])
+    val_dl = DataLoader(val_ds, batch_size=args.micro_batch_size, shuffle=False, collate_fn=lambda b: b[0])
 
     # Model
     enc_cfg = config.get("model", {})
@@ -154,6 +168,7 @@ def main():
     )
     loss_fct = torch.nn.CrossEntropyLoss(ignore_index=-100)
 
+    scaler = torch.cuda.amp.GradScaler(enabled=(args.amp and torch.cuda.is_available()))
     steps = int(args.steps)
     model.train()
     
@@ -171,6 +186,8 @@ def main():
         dl_iter = iter(dl)
         val_iter = iter(val_dl)
         
+        accum = 0
+        optim.zero_grad(set_to_none=True)
         for step in range(steps):
             try:
                 batch = next(dl_iter)
@@ -179,23 +196,25 @@ def main():
                 batch = next(dl_iter)
             
             input_ids, attn, mlm_labels, mnm_labels, rel_ids = [x.to(device) for x in batch]
-            hidden = model(input_ids.unsqueeze(0), attn.unsqueeze(0), rel_ids.unsqueeze(0))
-            logits_mlm = mlm_head(hidden)
-            logits_mnm = mnm_head(hidden)
-            
-            loss_mlm = loss_fct(logits_mlm.view(-1, vocab_size), mlm_labels.view(-1))
-            loss_mnm = loss_fct(logits_mnm.view(-1, vocab_size), mnm_labels.view(-1))
-            loss = loss_mlm + loss_mnm
-            
-            loss.backward()
-            optim.step()
-            optim.zero_grad()
+            with torch.cuda.amp.autocast(enabled=scaler.is_enabled()):
+                hidden = model(input_ids.unsqueeze(0), attn.unsqueeze(0), rel_ids.unsqueeze(0))
+                logits_mlm = mlm_head(hidden)
+                logits_mnm = mnm_head(hidden)
+                loss_mlm = loss_fct(logits_mlm.view(-1, vocab_size), mlm_labels.view(-1))
+                loss_mnm = loss_fct(logits_mnm.view(-1, vocab_size), mnm_labels.view(-1))
+                loss = (loss_mlm + loss_mnm) / max(1, args.grad_accum_steps)
+            scaler.scale(loss).backward()
+            accum += 1
+            if accum % args.grad_accum_steps == 0:
+                scaler.step(optim)
+                scaler.update()
+                optim.zero_grad(set_to_none=True)
             
             val_acc_mlm = 0.0
             val_acc_mnm = 0.0
             
             if (step + 1) % 10 == 0:
-                print(f"Step {step+1}/{steps}: loss={loss.item():.4f}, mlm_loss={loss_mlm.item():.4f}, mnm_loss={loss_mnm.item():.4f}")
+                print(f"Step {step+1}/{steps}: loss={(loss.item()*max(1, args.grad_accum_steps)):.4f}, mlm_loss={loss_mlm.item():.4f}, mnm_loss={loss_mnm.item():.4f}")
                 
                 # Validation
                 with torch.no_grad():
@@ -206,16 +225,34 @@ def main():
                         vbatch = next(val_iter)
                     
                     vi, va, vml, vmn, vr = [x.to(device) for x in vbatch]
-                    vhidden = model(vi.unsqueeze(0), va.unsqueeze(0), vr.unsqueeze(0))
-                    vlogits_mlm = mlm_head(vhidden)
-                    vlogits_mnm = mnm_head(vhidden)
+                    with torch.cuda.amp.autocast(enabled=scaler.is_enabled()):
+                        vhidden = model(vi.unsqueeze(0), va.unsqueeze(0), vr.unsqueeze(0))
+                        vlogits_mlm = mlm_head(vhidden)
+                        vlogits_mnm = mnm_head(vhidden)
                     val_acc_mlm = masked_token_accuracy(vlogits_mlm, vml.unsqueeze(0))
                     val_acc_mnm = masked_token_accuracy(vlogits_mnm, vmn.unsqueeze(0))
                     print(f"  Val: mlm_acc={val_acc_mlm:.4f}, mnm_acc={val_acc_mnm:.4f}")
             
+            # Intermediate checkpointing
+            if args.save_every_steps and (step + 1) % int(args.save_every_steps) == 0:
+                checkpoint_dir = Path("logs/checkpoints")
+                checkpoint_dir.mkdir(parents=True, exist_ok=True)
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                intermediate_path = checkpoint_dir / f"model_v2_step{step+1}_{timestamp}_s{args.seed}.pt"
+                torch.save({
+                    'model_state_dict': model.state_dict(),
+                    'mlm_head_state_dict': mlm_head.state_dict(),
+                    'mnm_head_state_dict': mnm_head.state_dict(),
+                    'optimizer_state_dict': optim.state_dict(),
+                    'config': config,
+                    'step': step + 1,
+                    'loss': loss.item() * max(1, args.grad_accum_steps)
+                }, intermediate_path)
+                print(f"  Saved intermediate checkpoint: {intermediate_path}")
+            
             writer.writerow([
                 step+1, 
-                float(loss.item()), 
+                float(loss.item()*max(1, args.grad_accum_steps)), 
                 float(loss_mlm.item()), 
                 float(loss_mnm.item()), 
                 float(val_acc_mlm), 
@@ -225,7 +262,8 @@ def main():
     # Save checkpoint
     checkpoint_dir = Path("logs/checkpoints")
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    checkpoint_path = checkpoint_dir / "model_v2_final.pt"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    checkpoint_path = checkpoint_dir / f"model_v2_{timestamp}_s{args.seed}.pt"
     torch.save({
         'model_state_dict': model.state_dict(),
         'mlm_head_state_dict': mlm_head.state_dict(),

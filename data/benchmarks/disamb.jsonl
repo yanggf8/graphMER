@@ -1,0 +1,2 @@
+{"mention": "User.getName", "candidates": ["User.get_name", "Customer.getName", "User.getName"], "gold": "User.getName"}
+{"mention": "Service.start", "candidates": ["Service.start", "Service.stop"], "gold": "Service.start"}

@@ -203,8 +203,18 @@ def create_code_tokenizer(tokenizer_path: str = "data/tokenizer/code_bpe_large.j
         if Path(fallback_path).exists():
             print(f"Using fallback tokenizer: {fallback_path}")
             return CodeBPETokenizer(tokenizer_path=fallback_path)
-        print("Creating untrained tokenizer. Call .train() before use.")
-        return CodeBPETokenizer()
+        # Auto-train a minimal tokenizer from available corpus
+        try:
+            print("Auto-training a minimal tokenizer from data/raw samples...")
+            corpus_patterns = [
+                "data/raw/python_samples/**/*.py",
+                "data/raw/java_samples/**/*.java",
+            ]
+            tok = train_code_tokenizer(corpus_patterns, output_path=fallback_path, vocab_size=8000)
+            return tok
+        except Exception as e:
+            print(f"Auto-train failed: {e}. Creating untrained tokenizer. Call .train() before use.")
+            return CodeBPETokenizer()
 
 
 if __name__ == "__main__":

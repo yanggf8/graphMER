@@ -1,0 +1,32 @@
+# GPU Training Profiles
+# Format: profile_name -> training parameters
+
+406016G:
+  description: "4GB GPU, 6 cores, 16GB RAM - Conservative profile"
+  steps: 1000
+  max_samples: 5000
+  micro_batch_size: 4
+  grad_accum_steps: 16
+  save_every_steps: 200
+  amp: true
+  config: "configs/train_v2_gpu.yaml"
+
+408032G:
+  description: "8GB GPU, 8 cores, 32GB RAM - Balanced profile"
+  steps: 2000
+  max_samples: 10000
+  micro_batch_size: 6
+  grad_accum_steps: 20
+  save_every_steps: 200
+  amp: true
+  config: "configs/train_v2_gpu.yaml"
+
+81664G:
+  description: "16GB GPU, 16 cores, 64GB RAM - High-end profile"
+  steps: 5000
+  max_samples: 20000
+  micro_batch_size: 8
+  grad_accum_steps: 24
+  save_every_steps: 500
+  amp: true
+  config: "configs/train_v2_gpu.yaml"

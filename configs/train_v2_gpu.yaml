@@ -1,0 +1,22 @@
+run:
+  seed: 42
+  mixed_precision: fp16  # enable with --amp
+
+hardware:
+  device: gpu
+
+model:
+  hidden_size: 768
+  num_layers: 12
+  num_heads: 12
+  intermediate_size: 3072
+  use_rel_attention_bias: true
+
+optimizer:
+  lr: 3.0e-4
+  weight_decay: 0.01
+
+training_data:
+  micro_batch_size: 4
+  grad_accumulation_steps: 16
+  max_seq_len: 128

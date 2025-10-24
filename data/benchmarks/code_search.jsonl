@@ -1,0 +1,1 @@
+{"query": "read json file", "candidates": ["def read_json(p): return json.load(open(p))", "def save_json(p,d): json.dump(d, open(p,'w'))"], "gold": "def read_json(p): return json.load(open(p))"}

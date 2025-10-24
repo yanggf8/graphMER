@@ -1,0 +1,1 @@
+{"components": ["pkg.modA", "pkg.modB", "pkg.modC"], "gold_deps": [["pkg.modA","pkg.modB"]]}
