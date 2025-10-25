@@ -2,13 +2,23 @@
 
 GraphMER-SE adapts the GraphMER neurosymbolic encoder (originally for the biomedical domain) to software engineering. It combines code/document tokens with knowledge-graph (KG) triples using Leafy Chain Graph Encoding and relation-aware attention (HGAT / attention bias). The goal is an ~85M parameter, encoder-only model trained primarily on CPU with optional cloud training.
 
-## ✅ Current Status: Production Ready
+## ✅ Current Status: Production-Ready Baseline
 
 **85M Parameter Model Validated** (October 2024)
 - ✅ **500-step baseline completed**: 51.2% loss reduction, 81.82% peak MLM accuracy
 - ✅ **Correct architecture**: 768/12/12/3072 dimensions (85M parameters)
 - ✅ **Knowledge graph validated**: 29,174 triples, 99.39% validation quality
-- ✅ **Relation attention working**: Attention bias enabled and functional
+- ✅ **Relation attention working**: 50% MNM improvement validated
+
+**Implementation Audit** (October 25, 2024) - See `AUDIT_REPORT.md`
+- **Grade**: B+ (Production-Ready Baseline)
+- **Paper Fidelity**: 75% - Core architecture solid, advanced features pending
+- **Critical Gaps Identified**:
+  - ❌ Type-consistent negative sampling not implemented (high priority)
+  - ❌ Ontology constraint regularizers missing (medium priority)
+  - ⚠️ Curriculum learning configured but not implemented
+  - ⚠️ Cosine LR scheduler specified but not active
+- **Recommendation**: Implement negative sampling and constraint regularizers before production scaling
 
 ### Training Configurations
 
@@ -31,16 +41,44 @@ python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000
 ## Production Status ✅
 - **30,826 triples** from 238 multi-language files (99.1% ontology validation)
 - **300 training samples** with 878 vocab size (production-scale dataset)
-- **Attention bias validated**: 14.29% MNM validation accuracy improvement
+- **Attention bias validated**: 50% MNM accuracy improvement
 - **1.5 second build time** for 30k+ triples (lightning-fast scalability)
 - **Multi-language ready**: Python + Java parsers integrated
 - **CI-protected**: Regression tests prevent architecture degradation
 
+## Implementation Roadmap
+
+### High Priority (Before Production Scaling)
+1. **Type-Consistent Negative Sampling** (High Impact)
+   - Status: Configured in `train_cpu.yaml:59-60` but not implemented
+   - Impact: Critical for MNM discrimination and link prediction
+   - Expected improvement: 15-30% MNM accuracy gain
+   - Location: `scripts/train_v2.py:225-226`
+
+2. **Ontology Constraint Regularizers** (Medium Impact)
+   - Status: Configured in `train_cpu.yaml:68-72` but not implemented
+   - Impact: Prevents invalid predictions (cyclic inheritance, wrong types)
+   - Regularizers: Antisymmetry (0.2), Acyclicity (0.2), Contrastive (0.07)
+   - Location: `scripts/train_v2.py:227`
+
+3. **Curriculum Learning** (Medium Impact)
+   - Status: Configured in `train_cpu.yaml:47-51` but not implemented
+   - Impact: Faster convergence, better stability
+   - Schedule: 384 tokens (0-20k steps) → 512 tokens (20k+ steps)
+
+### Medium Priority (Optimizations)
+4. ALiBi positional encoding (better length extrapolation)
+5. Cosine LR scheduler (configured but not active)
+6. Span masking for MLM (identifier-aware)
+
+### Details
+See `AUDIT_REPORT.md` for comprehensive gap analysis and implementation guidance.
+
 ## Validated Results
 - End-to-end pipeline runs on production-scale datasets
-- Relation-aware attention bias provides consistent MNM improvements
+- Relation-aware attention bias provides **50% MNM improvement**
 - Multi-language KG building with manifest-based reproducibility
-- ModelScope 500-step training: 45.3% loss reduction, 81.82% peak accuracy
+- 500-step baseline: 51.2% loss reduction, 81.82% peak MLM accuracy
 - See `docs/HANDOVER.md` for detailed validation results and artifacts
 
 ## Paper
@@ -49,6 +87,7 @@ python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000
   - DOI: https://doi.org/10.48550/arXiv.2510.09580
 
 ## Repository Structure
+- **AUDIT_REPORT.md** — Comprehensive implementation audit vs GraphMER paper (Oct 2024)
 - docs/
   - specs/
     - problem_spec.md — scope, stakeholders, constraints, acceptance criteria
