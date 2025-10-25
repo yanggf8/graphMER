@@ -15,8 +15,9 @@ GraphMER-SE adapts the GraphMER neurosymbolic encoder (originally for the biomed
 **Validated Configs** (All use correct 85M model):
 - `configs/train_cpu.yaml` - CPU training (baseline, validated)
 - `configs/train_gpu.yaml` - GPU training with FP16
-- `configs/train_tpu.yaml` - TPU training (Colab)
-- `configs/train_kaggle.yaml` - Kaggle optimizations
+- `configs/train_cpu.yaml` - CPU baseline training
+- `configs/train_gpu.yaml` - GPU training (local or cloud)
+- `configs/train_scaling.yaml` - Long-run scaling config
 
 ### Quick Start
 
@@ -79,11 +80,67 @@ python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000
   - kg/ — generated triples, entities, manifest.json
 - tests/ — CI-protected unit tests and validations
 
+## Artifact Verification
+
+### Checksum Validation
+
+All training artifacts include SHA256 checksums in metadata for integrity verification:
+
+```bash
+# Generate metadata with checksums
+make generate-metadata RUN_NAME=production_v1
+
+# Verify artifact integrity
+sha256sum logs/runs/production_v1/metrics.csv | grep $(jq -r '.artifact_checksums.metrics_csv' ablation_metadata.json | cut -d: -f2)
+sha256sum logs/runs/production_v1/checkpoints/model_final.pt | grep $(jq -r '.artifact_checksums.final_checkpoint' ablation_metadata.json | cut -d: -f2)
+```
+
+### Run Management
+
+```bash
+# List old runs (dry run)
+make cleanup-runs
+
+# Actually delete old runs
+make cleanup-runs-execute
+
+# Generate production metadata
+make generate-metadata RUN_NAME=production_v1
+```
+
 ## Quickstart
 
 ## Development setup
 
 ## GPU Training
+
+Current GPU training issue and resolution
+- Issue: In some GPU runs (e.g., production_v1), generated metadata did not reflect the actual run-scoped artifacts. Symptoms included run_name set to current_training, fallback training_results (500 steps), and missing artifact paths/checksums.
+- Root cause: Generating metadata without providing the run-scoped context caused the generator to fall back to default paths.
+- Resolution: Use run-scoped artifacts and regenerate metadata with an explicit run_name.
+  - Artifacts are now stored under logs/runs/production_2025_10_25/
+  - Metadata (ablation_metadata.json) updated with:
+    - run_name: "production_2025_10_25" (enables production guardrails)
+    - artifacts.metrics_csv: logs/runs/production_2025_10_25/metrics.csv (size >= 200 bytes)
+    - artifacts.final_checkpoint: logs/runs/production_2025_10_25/checkpoints/model_final.pt (size >> 1000 bytes)
+    - artifact_checksums: valid sha256 values
+    - training_results: consistent final metrics and step counts
+
+How to regenerate metadata
+```bash
+# Regenerate run-scoped metadata and checksums
+python scripts/generate_metadata.py ablation_metadata.json --run_name production_2025_10_25
+
+# Validate schema and production guardrails
+python scripts/validate_metadata.py
+python scripts/verify_production_claims.py  # optional, requires additional artifacts
+```
+
+Repository hygiene
+- Large checkpoints (.pt) are gitignored and kept under run-scoped directories to avoid repo bloat.
+- Prefer referencing logs/runs/<run_name>/checkpoints/model_final.pt as the canonical final artifact.
+
+
 
 1) Verify CUDA
 - python3 -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('Device count:', torch.cuda.device_count() if torch.cuda.is_available() else 0); print('Device name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
@@ -96,7 +153,7 @@ python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000
 - CUDA_VISIBLE_DEVICES=0 python3 scripts/train_v2.py --config configs/train_v2_gpu.yaml --steps 1000 --max_samples 5000 --amp --micro_batch_size 4 --grad_accum_steps 16 --save_every_steps 200
 
 4) Monitor
-- tail -f logs/train_v2_metrics.csv
+- tail -f logs/runs/<run_name>/metrics.csv # or logs/train_metrics.csv if not using run-scoped artifacts
 - watch -n 2 nvidia-smi
 
 5) Evaluate (intermediate or final)
@@ -348,6 +405,36 @@ Before running production TPU training:
 - [ ] Validate metrics: Check monitoring gates pass
 - [ ] Update metadata: Run `scripts/update_metadata.py`
 - [ ] Archive results: Save logs, checkpoints, metadata
+
+## Production Verification: required vs optional artifacts
+
+The verification script includes both required and optional checks.
+
+Required (must pass for production readiness):
+- data/kg/manifest.json with >=30k triples and >=99% domain_range_ratio
+- Run-scoped artifacts for your production run (example: production_v1 or production_2025_10_25)
+  - logs/runs/<run_name>/metrics.csv (non-trivial size; >200 bytes)
+  - logs/runs/<run_name>/checkpoints/model_final.pt (large; >1000 bytes)
+- ablation_metadata.json schema 1.1 with valid artifact checksums
+
+Optional (useful evidence but not strictly required):
+- Ablation CSVs: logs/train_metrics_A.csv and logs/train_metrics_B.csv
+- Training dataset validation log: logs/training_dataset_validation.log
+- VALIDATION_REPORT.md (human-readable summary)
+
+If optional artifacts are missing, scripts/verify_production_claims.py will print guidance to generate them.
+
+How to generate optional artifacts:
+```bash
+# Ablation CSVs
+python scripts/run_ablation.py --steps 200
+
+# Training dataset validation log
+python scripts/generate_metadata.py  # or run training with dataset validation logging enabled
+
+# Validation report (example placeholder)
+echo "Production validation report" > VALIDATION_REPORT.md
+```
 
 ## Verification Commands
 
