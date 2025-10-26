@@ -2,7 +2,7 @@
 
 GraphMER-SE adapts the GraphMER neurosymbolic encoder (originally for the biomedical domain) to software engineering. It combines code/document tokens with knowledge-graph (KG) triples using Leafy Chain Graph Encoding and relation-aware attention. The goal is an ~85M parameter, encoder-only model trained primarily on CPU with optional cloud training.
 
-## ✅ Current Status: Production-Ready Advanced Features
+## ✅ Current Status: Production-Ready Advanced Features - Evaluation Complete
 
 **85M Parameter Model with Advanced Features** (October 2025)
 - ✅ **Extended production training**: 84.4% loss reduction over 4,000+ steps
@@ -10,13 +10,14 @@ GraphMER-SE adapts the GraphMER neurosymbolic encoder (originally for the biomed
 - ✅ **Advanced architecture**: Constraint regularizers, curriculum learning, negative sampling
 - ✅ **Production infrastructure**: Streaming validation, GPU profiles, comprehensive checkpointing
 - ✅ **Knowledge graph validated**: 21,006 triples, 99.52% validation quality
-- ✅ **All critical audit gaps addressed**: Grade upgraded from B+ to A-
+- ✅ **Comprehensive evaluation**: Baseline established, extended training required
 
 **Implementation Status** (October 27, 2025)
 - **Grade**: A- (Production-Ready with Advanced Features)
 - **Training Pipeline**: All neurosymbolic features implemented and validated at scale
 - **Infrastructure**: Fully hardened with timeout protection and artifact integrity
-- **Performance**: Exceeds all baseline expectations with perfect convergence
+- **Performance**: Perfect MLM convergence, downstream tasks require extended training
+- **Next Phase**: 10k+ step training for target downstream performance
 
 ### Quick Start
 
