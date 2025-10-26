@@ -119,16 +119,16 @@ All configs now use correct baseline dimensions (768/12/12/3072):
    - Optimized for: Extended training runs, evaluation benchmarks
 
 4. **`configs/train_tpu.yaml`**
-   - Target: Colab TPU v2
+   - Note: Colab TPU instructions deprecated
    - Batch size: 128 per core
    - Mixed precision: BF16
 
-5. **`configs/train_kaggle.yaml`**
-   - Target: Kaggle GPU environment
-   - Optimized for platform constraints
+5. `configs/archive/train_kaggle.yaml`
+   - Archived: Kaggle GPU flow deprecated (now paid)
+   - Kept for historical reference only
 
-### Deprecated
-- `configs/modelscope_config.yaml` - Keep for reference but use standard configs
+### Archived
+- `configs/archive/modelscope_config.yaml` - ModelScope config archived; use standard configs
 
 ---
 

@@ -34,7 +34,7 @@ def run_profile(profile_name, overrides=None):
         "python3", "scripts/train_v2.py",
         "--config", profile["config"],
         "--steps", str(profile["steps"]),
-        "--max_samples", str(profile["max_samples"]),
+        "--max_samples", str(profile.get("max_samples", 0) if profile.get("max_samples", None) is not None else 0),
         "--micro_batch_size", str(profile["micro_batch_size"]),
         "--grad_accum_steps", str(profile["grad_accum_steps"])
     ]
@@ -42,9 +42,8 @@ def run_profile(profile_name, overrides=None):
     if profile.get("amp", False):
         cmd.append("--amp")
     
-    if "save_every_steps" in profile:
-        # Note: This would need to be added to train_v2.py if not present
-        pass
+    if "save_every_steps" in profile and profile["save_every_steps"]:
+        cmd.extend(["--save_every_steps", str(profile["save_every_steps"])])
     
     print(f"Executing: {' '.join(cmd)}")
     return subprocess.run(cmd).returncode
@@ -53,6 +52,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run GPU training with predefined profiles")
     parser.add_argument("--profile", required=True, help="Profile name (e.g., 406016G)")
     parser.add_argument("--steps", type=int, help="Override steps")
+    parser.add_argument("--max_samples", type=int, help="Override max samples")
     parser.add_argument("--micro_batch_size", type=int, help="Override micro batch size")
     parser.add_argument("--grad_accum_steps", type=int, help="Override grad accumulation steps")
     parser.add_argument("--save_every_steps", type=int, help="Override save frequency")
@@ -62,7 +62,7 @@ def main():
     
     # Build overrides dict
     overrides = {}
-    for key in ["steps", "micro_batch_size", "grad_accum_steps", "save_every_steps"]:
+    for key in ["steps", "max_samples", "micro_batch_size", "grad_accum_steps", "save_every_steps"]:
         value = getattr(args, key)
         if value is not None:
             overrides[key] = value

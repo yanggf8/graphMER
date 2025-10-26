@@ -20,3 +20,21 @@ training_data:
   micro_batch_size: 4
   grad_accumulation_steps: 16
   max_seq_len: 128
+  negative_sampling:
+    enabled: true
+    ratio: 0.15
+    type_consistent: true
+  curriculum_learning:
+    enabled: true
+    schedule:
+      - {steps: 0, max_seq_len: 128}
+      - {steps: 1000, max_seq_len: 256}
+      - {steps: 3000, max_seq_len: 512}
+
+regularizers:
+  ontology_constraints:
+    antisymmetry_weight: 0.2
+    acyclicity_weight: 0.2
+  contrastive:
+    enabled: true
+    temperature: 0.07

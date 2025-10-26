@@ -93,7 +93,7 @@ python3 scripts/train_v2.py --steps 50 --max_samples 100 --seed 42
 ### 3. Check Results
 ```bash
 # View training metrics
-tail logs/train_v2_metrics.csv
+tail logs/runs/<run_name>/metrics.csv
 
 # Verify checkpoint exists
 ls -lh logs/checkpoints/model_v2_final.pt

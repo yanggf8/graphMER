@@ -22,11 +22,9 @@ GraphMER-SE adapts the GraphMER neurosymbolic encoder (originally for the biomed
 
 ### Training Configurations
 
-**Validated Configs** (All use correct 85M model):
-- `configs/train_cpu.yaml` - CPU training (baseline, validated)
-- `configs/train_gpu.yaml` - GPU training with FP16
-- `configs/train_cpu.yaml` - CPU baseline training
-- `configs/train_gpu.yaml` - GPU training (local or cloud)
+**Validated Configs** (85M model):
+- `configs/train_cpu.yaml` - CPU training (baseline)
+- `configs/train_v2_gpu.yaml` - Local GPU training (FP16)
 - `configs/train_scaling.yaml` - Long-run scaling config
 
 ### Quick Start
@@ -113,6 +111,8 @@ See `AUDIT_REPORT.md` for comprehensive gap analysis and implementation guidance
   - run_ablation.py, summarize_logs.py — ablation helpers
 - configs/
   - train_cpu.yaml — CPU training config (attention bias enabled by default)
+  - train_v2_gpu.yaml — Local GPU training config (FP16)
+  - train_scaling.yaml — Long-run scaling config
   - train_tpu.yaml — TPU training config
 - data/
   - raw/ — sample code (Python/Java)
@@ -269,32 +269,24 @@ python scripts/eval.py
 
 ## Free Training Options
 
-**Current Available Platforms** (Kaggle GPU now requires paid plan):
+1. CPU Training (always available):
+  ```bash
+  python scripts/train.py --config configs/train_cpu.yaml --steps 500
+  ```
 
-1. **CPU Training** (Always Available):
-   ```bash
-   python scripts/train.py --config configs/train_cpu.yaml --steps 500
-   ```
+2. Extended CPU Training (recommended for baseline metrics):
+  ```bash
+  python scripts/train.py --config configs/train_cpu.yaml --steps 1000 --limit 32 --chunk_size 2
+  ```
 
-2. **Extended CPU Training (1000+ Steps for Meaningful Metrics):**
-   For more meaningful performance metrics, baseline establishment, and production validation, it's recommended to run for 1000 or more steps. This is a documented approach in the project for assessing model convergence.
-   ```bash
-   python scripts/train.py --config configs/train_cpu.yaml --steps 1000 --limit 32 --chunk_size 2
-   ```
-
-2. **Google Colab** (Free Tier):
-   - T4 GPU available (limited hours)
-   - Use `configs/train_tpu.yaml` for TPU access
-   - Good for 500-step baselines
-
-3. **ModelScope** (Alibaba Cloud):
-   - Completely free, no credit card required
-   - See `docs/modelscope_training.md` for setup
-   - Validated with successful training runs
-
-4. **Lightning AI Studios** (Free Tier):
-   - GPU hours included in free plan
-   - Jupyter-like environment
+3. Local GPU (if available):
+  ```bash
+  CUDA_VISIBLE_DEVICES=0 python3 scripts/train_v2.py \
+    --config configs/train_v2_gpu.yaml \
+    --steps 1000 --max_samples 5000 \
+    --amp --micro_batch_size 4 --grad_accum_steps 16 \
+    --save_every_steps 200
+  ```
 
 ## TPU Training
 
@@ -365,17 +357,7 @@ Key TPU optimizations:
 
 ### Running TPU Training
 
-**Quick Start (Automated):**
-```bash
-./run_tpu_training.sh
-```
-
-This script:
-1. Verifies torch-xla installation
-2. Runs training with monitoring
-3. Validates metrics against quality gates
-
-**Manual Execution:**
+Manual execution:
 ```bash
 # 1. Build knowledge graph (if not done)
 python scripts/build_kg_enhanced.py --source_dir data/raw/python_samples
@@ -501,12 +483,7 @@ echo "Production validation report" > VALIDATION_REPORT.md
 
 ## Verification Commands
 
-Verify all production claims:
-```bash
-./verify_all.sh
-```
-
-Or verify individually:
+Verify individually:
 ```bash
 # Verify 14.29% MNM improvement
 python scripts/summarize_logs.py --steps 100 150 200

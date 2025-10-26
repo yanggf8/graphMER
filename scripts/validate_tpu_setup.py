@@ -154,7 +154,6 @@ class TPUSetupValidator:
             "scripts/train.py",
             "scripts/check_monitoring_gates.py",
             "scripts/update_metadata.py",
-            "run_tpu_training.sh",
         ]
 
         missing = []
@@ -262,7 +261,7 @@ class TPUSetupValidator:
             print("\n✅ All checks passed! TPU training setup is ready.")
             print("\nNext steps:")
             print("  1. Build KG: python scripts/build_kg_enhanced.py --source_dir data/raw/python_samples")
-            print("  2. Run training: ./run_tpu_training.sh")
+            print("  2. Run training: python scripts/train.py --config configs/train_tpu.yaml --steps 300")
             print("  3. Or manual: python scripts/train.py --config configs/train_tpu.yaml --steps 300")
             return True
         else:

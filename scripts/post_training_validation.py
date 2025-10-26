@@ -11,11 +11,20 @@ def main():
     
     # Run full reproducibility harness
     print("🔄 Running reproducibility harness...")
-    result = subprocess.run(["python", "scripts/repro_harness.py"], capture_output=True, text=True)
-    
-    if result.returncode != 0:
-        print("❌ Reproducibility harness failed")
-        print(result.stdout)
+    # Stream harness output with timeout to avoid silent hangs
+    try:
+        proc = subprocess.Popen(["python", "scripts/repro_harness.py"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in iter(proc.stdout.readline, ''):
+            if not line:
+                break
+            print(line.rstrip())
+        proc.wait(timeout=1800)
+        if proc.returncode != 0:
+            print("❌ Reproducibility harness failed")
+            return False
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        print("⏱️ Reproducibility harness timed out after 1800s")
         return False
     
     print("✅ Reproducibility harness passed")

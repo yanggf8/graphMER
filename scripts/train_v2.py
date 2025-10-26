@@ -12,6 +12,27 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.training.constraint_loss import ConstraintLoss
+
+
+def get_curriculum_seq_len(step: int, config: dict) -> int:
+    """Get sequence length based on curriculum learning schedule."""
+    curriculum_cfg = config.get("training_data", {}).get("curriculum_learning", {})
+    if not curriculum_cfg.get("enabled", False):
+        return config.get("training_data", {}).get("max_seq_len", 512)
+    
+    schedule = curriculum_cfg.get("schedule", [])
+    if not schedule:
+        return config.get("training_data", {}).get("max_seq_len", 512)
+    
+    # Find current curriculum stage
+    current_len = schedule[0].get("max_seq_len", 128)
+    for stage in schedule:
+        if step >= stage.get("steps", 0):
+            current_len = stage.get("max_seq_len", current_len)
+    
+    return current_len
+
 
 def load_config(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as f:
@@ -30,6 +51,13 @@ def main():
     parser.add_argument("--grad_accum_steps", type=int, default=8, help="Gradient accumulation steps")
     parser.add_argument("--amp", action="store_true", help="Enable mixed precision (AMP)")
     parser.add_argument("--save_every_steps", type=int, default=0, help="Save checkpoint every N steps (0=only final)")
+    # Diagnostics and stability
+    parser.add_argument("--mnm_weight", type=float, default=None, help="Override MNM loss weight")
+    parser.add_argument("--mlm_weight", type=float, default=None, help="Override MLM loss weight")
+    parser.add_argument("--mnm_weight_ramp", type=int, default=0, help="Linearly ramp MNM weight to target over N steps (0=disabled)")
+    parser.add_argument("--log_mnm_debug", type=int, default=0, help="Every N steps, log MNM debug info (0=disabled)")
+    parser.add_argument("--clip_grad", type=float, default=0.0, help="Gradient clipping max norm (0=disabled)")
+    parser.add_argument("--warmup_steps", type=int, default=0, help="Linear LR warmup steps (0=disabled)")
     args = parser.parse_args()
 
     config = load_config(Path(args.config))
@@ -161,12 +189,30 @@ def main():
     mnm_head.to(device)
 
     opt_cfg = config.get("optimizer", {})
+    params_all = list(model.parameters()) + list(mlm_head.parameters()) + list(mnm_head.parameters())
+    base_lr = opt_cfg.get("lr", 3e-4)
     optim = torch.optim.AdamW(
-        list(model.parameters()) + list(mlm_head.parameters()) + list(mnm_head.parameters()), 
-        lr=opt_cfg.get("lr", 3e-4), 
+        params_all,
+        lr=base_lr,
         weight_decay=opt_cfg.get("weight_decay", 0.01)
     )
     loss_fct = torch.nn.CrossEntropyLoss(ignore_index=-100)
+
+    # Initialize constraint loss
+    reg_cfg = config.get("regularizers", {})
+    constraint_cfg = reg_cfg.get("ontology_constraints", {})
+    contrastive_cfg = reg_cfg.get("contrastive", {})
+    
+    constraint_loss = ConstraintLoss(
+        antisymmetry_weight=constraint_cfg.get("antisymmetry_weight", 0.2),
+        acyclicity_weight=constraint_cfg.get("acyclicity_weight", 0.2),
+        contrastive_weight=contrastive_cfg.get("temperature", 0.07)
+    ).to(device)
+
+    # Objective weights (with optional CLI override)
+    obj_cfg = config.get("objectives", {})
+    base_mlm_w = args.mlm_weight if args.mlm_weight is not None else float(obj_cfg.get("mlm_loss_weight", 1.0))
+    base_mnm_w = args.mnm_weight if args.mnm_weight is not None else float(obj_cfg.get("mnm_loss_weight", 1.0))
 
     scaler = torch.cuda.amp.GradScaler(enabled=(args.amp and torch.cuda.is_available()))
     steps = int(args.steps)
@@ -181,7 +227,7 @@ def main():
     
     with log_path.open("w", newline="", encoding="utf-8") as fp:
         writer = csv.writer(fp)
-        writer.writerow(["step", "total_loss", "mlm_loss", "mnm_loss", "mlm_validation_accuracy", "mnm_validation_accuracy"])
+        writer.writerow(["step", "total_loss", "mlm_loss", "mnm_loss", "mlm_validation_accuracy", "mnm_validation_accuracy", "mlm_weight", "mnm_weight"])
         
         dl_iter = iter(dl)
         val_iter = iter(val_dl)
@@ -189,6 +235,9 @@ def main():
         accum = 0
         optim.zero_grad(set_to_none=True)
         for step in range(steps):
+            # Curriculum learning: adjust sequence length
+            current_seq_len = get_curriculum_seq_len(step, config)
+            
             try:
                 batch = next(dl_iter)
             except StopIteration:
@@ -196,22 +245,75 @@ def main():
                 batch = next(dl_iter)
             
             input_ids, attn, mlm_labels, mnm_labels, rel_ids = [x.to(device) for x in batch]
+            # MNM weight ramping
+            if args.mnm_weight_ramp and args.mnm_weight_ramp > 0:
+                ramp_frac = min(1.0, (step + 1) / float(args.mnm_weight_ramp))
+            else:
+                ramp_frac = 1.0
+            mlm_w = base_mlm_w
+            mnm_w = base_mnm_w * ramp_frac
+
             with torch.cuda.amp.autocast(enabled=scaler.is_enabled()):
                 hidden = model(input_ids.unsqueeze(0), attn.unsqueeze(0), rel_ids.unsqueeze(0))
                 logits_mlm = mlm_head(hidden)
                 logits_mnm = mnm_head(hidden)
                 loss_mlm = loss_fct(logits_mlm.view(-1, vocab_size), mlm_labels.view(-1))
                 loss_mnm = loss_fct(logits_mnm.view(-1, vocab_size), mnm_labels.view(-1))
-                loss = (loss_mlm + loss_mnm) / max(1, args.grad_accum_steps)
+                
+                # Compute constraint losses from embeddings and rel_ids
+                constraint_losses = constraint_loss(hidden, rel_ids.unsqueeze(0))
+                loss_constraint = constraint_losses['total']
+                
+                loss = (mlm_w * loss_mlm + mnm_w * loss_mnm + loss_constraint) / max(1, args.grad_accum_steps)
             scaler.scale(loss).backward()
             accum += 1
             if accum % args.grad_accum_steps == 0:
+                # Optional gradient clipping
+                if args.clip_grad and args.clip_grad > 0:
+                    try:
+                        scaler.unscale_(optim)
+                    except Exception:
+                        pass
+                    torch.nn.utils.clip_grad_norm_(params_all, max_norm=float(args.clip_grad))
+                # Optional LR warmup
+                if args.warmup_steps and args.warmup_steps > 0:
+                    lr_scale = min(1.0, float(step + 1) / float(args.warmup_steps))
+                    for g in optim.param_groups:
+                        g['lr'] = base_lr * lr_scale
                 scaler.step(optim)
                 scaler.update()
                 optim.zero_grad(set_to_none=True)
             
             val_acc_mlm = 0.0
             val_acc_mnm = 0.0
+
+            # MNM debug logging
+            if args.log_mnm_debug and args.log_mnm_debug > 0 and ((step + 1) % args.log_mnm_debug == 0):
+                with torch.no_grad():
+                    flat_labels = mnm_labels.view(-1)
+                    mask = flat_labels != -100
+                    masked_count = int(mask.sum().item())
+                    total_count = int(flat_labels.numel())
+                    preds = logits_mnm.view(-1, vocab_size).argmax(dim=-1)
+                    if masked_count > 0:
+                        acc = (preds[mask] == flat_labels[mask]).float().mean().item()
+                    else:
+                        acc = float('nan')
+                    # label/pred distributions (top-10)
+                    try:
+                        lab_hist = torch.bincount(flat_labels[mask].clamp_min(0), minlength=vocab_size)
+                        pred_hist = torch.bincount(preds[mask], minlength=vocab_size)
+                        top_labels = torch.topk(lab_hist, k=10).indices.tolist()
+                        top_preds = torch.topk(pred_hist, k=10).indices.tolist()
+                        top_labels_counts = [int(lab_hist[i].item()) for i in top_labels]
+                        top_preds_counts = [int(pred_hist[i].item()) for i in top_preds]
+                    except Exception:
+                        top_labels, top_labels_counts, top_preds, top_preds_counts = [], [], [], []
+                    print(f"[MNM-DEBUG] step={step+1} mlm_w={mlm_w:.3f} mnm_w={mnm_w:.3f} masked={masked_count}/{total_count} acc={acc:.4f}")
+                    if top_labels:
+                        print(f"[MNM-DEBUG] top_label_ids={top_labels} counts={top_labels_counts}")
+                    if top_preds:
+                        print(f"[MNM-DEBUG] top_pred_ids={top_preds} counts={top_preds_counts}")
             
             if (step + 1) % 10 == 0:
                 print(f"Step {step+1}/{steps}: loss={(loss.item()*max(1, args.grad_accum_steps)):.4f}, mlm_loss={loss_mlm.item():.4f}, mnm_loss={loss_mnm.item():.4f}")
@@ -256,7 +358,9 @@ def main():
                 float(loss_mlm.item()), 
                 float(loss_mnm.item()), 
                 float(val_acc_mlm), 
-                float(val_acc_mnm)
+                float(val_acc_mnm),
+                float(mlm_w),
+                float(mnm_w)
             ])
 
     # Save checkpoint

@@ -151,15 +151,20 @@ class LeafyChainDatasetV2(Dataset):
                         mnm_candidates.append(idx)
             j += 1
         
-        # Mask tokens with probability mnm_prob, but ensure at least 1 is masked
+        # Ensure minimum 8 MNM masked positions for better learning signal
         mnm_masked_positions = []
+        min_masks = min(8, len(mnm_candidates))
+        
+        # First, randomly mask with probability
         for idx in mnm_candidates:
             if random.random() < self.mnm_prob:
                 mnm_masked_positions.append(idx)
         
-        # If nothing was masked, force mask one random token
-        if not mnm_masked_positions and mnm_candidates:
-            mnm_masked_positions = [random.choice(mnm_candidates)]
+        # Ensure minimum coverage
+        while len(mnm_masked_positions) < min_masks and len(mnm_masked_positions) < len(mnm_candidates):
+            remaining = [idx for idx in mnm_candidates if idx not in mnm_masked_positions]
+            if remaining:
+                mnm_masked_positions.append(random.choice(remaining))
         
         # Apply masks
         for idx in mnm_masked_positions:

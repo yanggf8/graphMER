@@ -1,17 +1,17 @@
 {
   "version": "1.0",
-  "timestamp": 1761236623.6914806,
-  "build_duration_sec": 0.15548419952392578,
+  "timestamp": 1761501518.7362714,
+  "build_duration_sec": 1.0497255325317383,
   "source_dir": "data/raw/python_samples",
   "files_processed": {
-    "python": 50,
+    "python": 150,
     "java": 0
   },
-  "total_triples": 4681,
+  "total_triples": 21006,
   "validation": {
-    "domain_range_ok": 4663,
-    "total_triples": 4681,
-    "domain_range_ratio": 0.9961546678060244,
+    "domain_range_ok": 20905,
+    "total_triples": 21006,
+    "domain_range_ratio": 0.995191849947634,
     "inherits_acyclic": true,
     "failures_preview": [
       {
@@ -27,13 +27,13 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Method",
-          "Function"
+          "Function",
+          "Method"
         ],
         "expected_range": [
+          "Function",
           "API",
-          "Method",
-          "Function"
+          "Method"
         ],
         "head_type": "Function",
         "tail_type": "Module"
@@ -51,8 +51,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Method",
-          "Function"
+          "Function",
+          "Method"
         ],
         "expected_range": [
           "ExceptionType"
@@ -73,8 +73,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Method",
-          "Function"
+          "Function",
+          "Method"
         ],
         "expected_range": [
           "Type"
@@ -116,13 +116,13 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Method",
-          "Function"
+          "Function",
+          "Method"
         ],
         "expected_range": [
+          "Function",
           "API",
-          "Method",
-          "Function"
+          "Method"
         ],
         "head_type": "Method",
         "tail_type": "Module"
@@ -140,13 +140,13 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Method",
-          "Function"
+          "Function",
+          "Method"
         ],
         "expected_range": [
+          "Function",
           "API",
-          "Method",
-          "Function"
+          "Method"
         ],
         "head_type": "Method",
         "tail_type": "Module"
@@ -164,8 +164,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Method",
-          "Function"
+          "Function",
+          "Method"
         ],
         "expected_range": [
           "ExceptionType"
@@ -186,8 +186,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Method",
-          "Function"
+          "Function",
+          "Method"
         ],
         "expected_range": [
           "Class"
@@ -208,8 +208,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Method",
-          "Function"
+          "Function",
+          "Method"
         ],
         "expected_range": [
           "ExceptionType"
@@ -230,8 +230,8 @@
         },
         "reason": "domain_range_mismatch",
         "expected_domain": [
-          "Method",
-          "Function"
+          "Function",
+          "Method"
         ],
         "expected_range": [
           "ExceptionType"
@@ -291,7 +291,107 @@
     "data/raw/python_samples/pip/pkg_20__textwrap.py": "04e69ed1143abe0d",
     "data/raw/python_samples/pip/pkg_102_compressors.py": "19d0d674acd6aa42",
     "data/raw/python_samples/pip/pkg_131_replace.py": "43ab8c767e1e6da4",
-    "data/raw/python_samples/pip/pkg_7_error.py": "021f73fada072546"
+    "data/raw/python_samples/pip/pkg_7_error.py": "021f73fada072546",
+    "data/raw/python_samples/pip/pkg_3_constructor.py": "90d8247da78b524c",
+    "data/raw/python_samples/pip/pkg_101__optional.py": "f7a66573682a5189",
+    "data/raw/python_samples/pip/pkg_89_display.py": "c6ffd37ad5948459",
+    "data/raw/python_samples/pip/pkg_103_pickle_compat.py": "313a7f2d87ae7895",
+    "data/raw/python_samples/pip/pkg_112_config_init.py": "f3e5541216c8276f",
+    "data/raw/python_samples/pip/pkg_51___init__.py": "c1e3d0038536d2d2",
+    "data/raw/python_samples/pip/pkg_180_api.py": "b430419fce08d7d9",
+    "data/raw/python_samples/pip/pkg_24_exceptions.py": "f2eb5ff30e95e612",
+    "data/raw/python_samples/pip/pkg_145_string_.py": "8f2833f1c2290825",
+    "data/raw/python_samples/pip/pkg_146_string_arrow.py": "5e7f6ec41805fde8",
+    "data/raw/python_samples/pip/pkg_98___init__.py": "202e3f6668ec5f8f",
+    "data/raw/python_samples/pip/pkg_73_docs.py": "cd20efe3163a5c77",
+    "data/raw/python_samples/pip/pkg_64_v2.py": "d98f2ee0b1a8f6a9",
+    "data/raw/python_samples/pip/pkg_25_formatting.py": "4557f0c2bd2bc163",
+    "data/raw/python_samples/pip/pkg_136__mixins.py": "d4bb98e599817cc9",
+    "data/raw/python_samples/pip/pkg_28_shell_completion.py": "09ce0641416e5a97",
+    "data/raw/python_samples/pip/pkg_182_datetimelike.py": "247f3fa363493508",
+    "data/raw/python_samples/pip/pkg_96_asserters.py": "47ca02bfae0ec683",
+    "data/raw/python_samples/pip/pkg_42_filters.py": "64188a58ba774742",
+    "data/raw/python_samples/pip/pkg_183_datetimes.py": "f5695c7042838210",
+    "data/raw/python_samples/pip/pkg_106_function.py": "42f7e5afd878ad80",
+    "data/raw/python_samples/pip/pkg_125_var_.py": "e4168b76bec72b37",
+    "data/raw/python_samples/pip/pkg_118_shared_docs.py": "15d77b5e2d5343f7",
+    "data/raw/python_samples/pip/pkg_61_model_field.py": "4ab4a85c4725a065",
+    "data/raw/python_samples/pip/pkg_29_termui.py": "bc062b282d9aedff",
+    "data/raw/python_samples/pip/pkg_58___init__.py": "ab842dad03fe7814",
+    "data/raw/python_samples/pip/pkg_186_interval.py": "2121059f6a229de8",
+    "data/raw/python_samples/pip/pkg_121_extensions.py": "6b093b15c13f89da",
+    "data/raw/python_samples/pip/pkg_18__compat.py": "bf7c4166415bbc0d",
+    "data/raw/python_samples/pip/pkg_151_accessor.py": "9596b7870bd724a2",
+    "data/raw/python_samples/pip/pkg_4_cyaml.py": "e99ac01bd7c062f7",
+    "data/raw/python_samples/pip/pkg_31_types.py": "7a4e7804d485c0f2",
+    "data/raw/python_samples/pip/pkg_55_win32.py": "61038ac0c4f0b460",
+    "data/raw/python_samples/pip/pkg_66_concurrency.py": "322adfa30a12a643",
+    "data/raw/python_samples/pip/pkg_48_filters.py": "54e50c66e83db845",
+    "data/raw/python_samples/pip/pkg_133_transforms.py": "4cfa523d7e4289e3",
+    "data/raw/python_samples/pip/pkg_130_quantile.py": "cddcdcc20a1544fd",
+    "data/raw/python_samples/pip/pkg_43_setters.py": "e7e75c4fadc640ad",
+    "data/raw/python_samples/pip/pkg_161_pytables.py": "efe2f6199e376963",
+    "data/raw/python_samples/pip/pkg_144_period.py": "5667c31dcece0b6d",
+    "data/raw/python_samples/pip/pkg_95__warnings.py": "c7b60c68f92649a8",
+    "data/raw/python_samples/pip/pkg_173_grouper.py": "0e5fb46a88b75843",
+    "data/raw/python_samples/pip/pkg_30_testing.py": "10445bcdc9756ebd",
+    "data/raw/python_samples/pip/pkg_40_converters.py": "1a50de3b33de4c58",
+    "data/raw/python_samples/pip/pkg_166_common.py": "42dc2526048a52f7",
+    "data/raw/python_samples/pip/pkg_100___init__.py": "0495480d88dd79da",
+    "data/raw/python_samples/pip/pkg_158_expressions.py": "2b4beefeff090558",
+    "data/raw/python_samples/pip/pkg_105___init__.py": "50efb4e918f68363",
+    "data/raw/python_samples/pip/pkg_139_boolean.py": "967ec68e51c74ed0",
+    "data/raw/python_samples/pip/pkg_35__compat.py": "c7483b88450e9c15",
+    "data/raw/python_samples/pip/pkg_122_mean_.py": "05eb2a6358301573",
+    "data/raw/python_samples/pip/pkg_41_exceptions.py": "1d116ae22c9b9afe",
+    "data/raw/python_samples/pip/pkg_39__version_info.py": "c3847e1580b734af",
+    "data/raw/python_samples/pip/pkg_2_composer.py": "fcaa37d16afa7835",
+    "data/raw/python_samples/pip/pkg_127_masked_accumulations.py": "3cbf9900c6a2ec7d",
+    "data/raw/python_samples/pip/pkg_91___init__.py": "768c084cd5771b1a",
+    "data/raw/python_samples/pip/pkg_141_integer.py": "156b2b833b3f0c1d",
+    "data/raw/python_samples/pip/pkg_115_missing.py": "c7f5ce9a07bafe4f",
+    "data/raw/python_samples/pip/pkg_148__arrow_utils.py": "46e9518f25b3527f",
+    "data/raw/python_samples/pip/pkg_169_inference.py": "3aa03d8ad4b6a2c4",
+    "data/raw/python_samples/pip/pkg_78_api_key.py": "762fb4810f0c2ae8",
+    "data/raw/python_samples/pip/pkg_198_array_manager.py": "abf40a9444c629d6",
+    "data/raw/python_samples/pip/pkg_104_pyarrow.py": "1ec20e4b1e5e58b3",
+    "data/raw/python_samples/pip/pkg_82_temp_pydantic_v1_params.py": "0e3957a3fc2d6cd1",
+    "data/raw/python_samples/pip/pkg_9_loader.py": "5156becc8aa69054",
+    "data/raw/python_samples/pip/pkg_86__version.py": "1579f9727cea8600",
+    "data/raw/python_samples/pip/pkg_56_winterm.py": "5c24050c78cf8ba0",
+    "data/raw/python_samples/pip/pkg_177_objects.py": "3d1d3adc3565bbcf",
+    "data/raw/python_samples/pip/pkg_189_timedeltas.py": "f5ae66db02d0500d",
+    "data/raw/python_samples/pip/pkg_174_indexing.py": "418e06678c0377ed",
+    "data/raw/python_samples/pip/pkg_54_initialise.py": "fa1227cbce82957a",
+    "data/raw/python_samples/pip/pkg_171_base.py": "3aba86dbf87f069f",
+    "data/raw/python_samples/pip/pkg_22__winconsole.py": "fefc54b946b1c018",
+    "data/raw/python_samples/pip/pkg_52_ansi.py": "4e8a7811e12e6907",
+    "data/raw/python_samples/pip/pkg_157_expr.py": "0bdc3fa5e58b6acc",
+    "data/raw/python_samples/pip/pkg_194_from_dataframe.py": "9b65eeebf6d708da",
+    "data/raw/python_samples/pip/pkg_187_period.py": "a2187b278dc2815d",
+    "data/raw/python_samples/pip/pkg_170_missing.py": "04fcdb9abeceee28",
+    "data/raw/python_samples/pip/pkg_57_six.py": "c51c91f703d3d4b3",
+    "data/raw/python_samples/pip/pkg_119_sorting.py": "931af83e1cfc1c70",
+    "data/raw/python_samples/pip/pkg_60_main.py": "cd66ee5dd2ac3d65",
+    "data/raw/python_samples/pip/pkg_108_api.py": "f6d9b6ef9b13a4e2",
+    "data/raw/python_samples/pip/pkg_10_nodes.py": "80f28d8fca4a09d8",
+    "data/raw/python_samples/pip/pkg_149_accessors.py": "b6786a83376df80c",
+    "data/raw/python_samples/pip/pkg_6_emitter.py": "8e086d694ede1708",
+    "data/raw/python_samples/pip/pkg_27_parser.py": "437d691f41654191",
+    "data/raw/python_samples/pip/pkg_62_shared.py": "4fc6d24d45ff3505",
+    "data/raw/python_samples/pip/pkg_111_common.py": "5b092908e23c6fd8",
+    "data/raw/python_samples/pip/pkg_59___init__.py": "5879cdb32a88243a",
+    "data/raw/python_samples/pip/pkg_164_astype.py": "6b0ccea677d9d1d0",
+    "data/raw/python_samples/pip/pkg_168_generic.py": "6af2a8241cc8434a",
+    "data/raw/python_samples/pip/pkg_147_timedeltas.py": "7938bc6f5e89ba66",
+    "data/raw/python_samples/pip/pkg_26_globals.py": "80cf8d87a0383341",
+    "data/raw/python_samples/pip/pkg_134___init__.py": "744e964536e572ae",
+    "data/raw/python_samples/pip/pkg_87___init__.py": "3c8389694dc8bd47",
+    "data/raw/python_samples/pip/pkg_72_exceptions.py": "b5a362c6e1445dbe",
+    "data/raw/python_samples/pip/pkg_70_encoders.py": "ad6ba7580518e355",
+    "data/raw/python_samples/pip/pkg_165_base.py": "11e2fcccd6ccb6bb",
+    "data/raw/python_samples/pip/pkg_167_concat.py": "43f42e8df0740be0",
+    "data/raw/python_samples/pip/pkg_44_validators.py": "d419d8193b98bd2b"
   },
   "ontology_version": "0.1.0",
   "outputs": {

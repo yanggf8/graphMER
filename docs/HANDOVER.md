@@ -61,18 +61,19 @@ python scripts/train.py --config configs/train_scaling.yaml
 
 ## Free Training Options
 
-1. **CPU Training** (Always available):
-   ```bash
-   python scripts/train.py --config configs/train_cpu.yaml --steps 500
-   ```
+1. CPU Training (always available):
+  ```bash
+  python scripts/train.py --config configs/train_cpu.yaml --steps 500
+  ```
 
-2. **Google Colab** (Free tier):
-   - T4 GPU available (limited hours)
-   - Use `configs/train_tpu.yaml`
-
-3. **ModelScope** (Alibaba Cloud):
-   - Completely free, no credit card
-   - See `docs/modelscope_training.md`
+2. Local GPU (if available):
+  ```bash
+  CUDA_VISIBLE_DEVICES=0 python3 scripts/train_v2.py \
+    --config configs/train_v2_gpu.yaml \
+    --steps 1000 --max_samples 5000 \
+    --amp --micro_batch_size 4 --grad_accum_steps 16 \
+    --save_every_steps 200
+  ```
 
 ## Repository Structure
 
@@ -84,10 +85,9 @@ python scripts/train.py --config configs/train_scaling.yaml
   - `ontology/` - KG validator
 - `configs/` - Training configurations
   - `train_cpu.yaml` - CPU training (validated)
-  - `train_gpu.yaml` - GPU training (RTX 3050)
-  - `train_scaling.yaml` - NEW: Large-scale production training
-  - `train_tpu.yaml` - TPU training (Colab)
-  - `train_kaggle.yaml` - Kaggle GPU
+  - `train_v2_gpu.yaml` - Local GPU training (FP16)
+  - `train_scaling.yaml` - Large-scale production training
+  - `train_tpu.yaml` - TPU training
 - `scripts/` - Training and evaluation scripts
   - `train.py` - Main training script
   - `eval.py` - Config-aware evaluation (updated)

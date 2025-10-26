@@ -19,12 +19,11 @@
 4. **Relation Attention**: Attention bias enabled and functional
 5. **Multi-language Support**: Python + Java parsers
 
-### Free Training Platforms
+### Recommended Training Environments
 
-1. **CPU Training** (Always available)
-2. **Google Colab** (Free tier T4 GPU)
-3. **ModelScope** (Alibaba Cloud, completely free)
-4. **Lightning AI Studios** (Free tier GPU)
+1. CPU or local GPU
+2. Managed GPU (AWS/GCP/Azure) or your preferred cloud
+3. On-prem GPU clusters
 
 ### Quick Commands
 

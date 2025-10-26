@@ -1,0 +1,27 @@
+run:
+  seed: 42
+  mixed_precision: fp16
+
+hardware:
+  device: cpu  # Start with CPU for debugging
+
+model:
+  hidden_size: 768
+  num_layers: 12
+  num_heads: 12
+  intermediate_size: 3072
+  use_rel_attention_bias: true
+
+optimizer:
+  lr: 1.0e-4  # Lower LR as GPT suggested
+  weight_decay: 0.01
+
+training_data:
+  micro_batch_size: 2
+  grad_accumulation_steps: 4
+  max_seq_len: 128
+
+# MNM debugging settings
+objectives:
+  mnm_loss_weight: 0.2  # Start low, as GPT suggested
+  mlm_loss_weight: 1.0

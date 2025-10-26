@@ -277,7 +277,7 @@ print('✅ All fixes verified')
 python3 scripts/train_v2.py --steps 20 --max_samples 50 --seed 42
 
 # 3. Check no NaN losses
-tail logs/train_v2_metrics.csv
+tail logs/runs/<run_name>/metrics.csv
 ```
 
 ### Comprehensive Test (30 minutes)
