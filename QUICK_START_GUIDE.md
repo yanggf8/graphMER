@@ -32,6 +32,27 @@ All three critical issues have been fixed. Here's how to use the new implementat
 
 ## 🎯 Quick Commands
 
+### GPU Quick Start (Validated on RTX 4060 Ti 16GB)
+```bash
+# High-performance training (16GB handles this easily)
+CUDA_VISIBLE_DEVICES=0 python3 scripts/train_v2.py \
+  --config configs/train_v2_gpu.yaml \
+  --steps 1000 --max_samples 5000 \
+  --amp --micro_batch_size 8 --grad_accum_steps 8 \
+  --save_every_steps 200
+
+# Monitor training
+tail -f logs/train_v2_metrics.csv
+watch -n 2 nvidia-smi
+```
+
+Results observed (500 steps ~6 minutes):
+- Loss: 16.38 → 8.26 (≈49% reduction)
+- MLM accuracy: up to 16.7%
+- GPU memory: ~750MB of 16GB
+
+
+
 ### 1. Train with Fixed Implementation (Small Scale - Fast)
 ```bash
 # Train with 500 samples for 200 steps (~10 minutes)

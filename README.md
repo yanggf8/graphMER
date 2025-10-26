@@ -153,6 +153,30 @@ make generate-metadata RUN_NAME=production_v1
 
 ## GPU Training
 
+### Validated Local GPU Setup (RTX 4060 Ti 16GB)
+- Environment: CUDA 12.1, PyTorch 2.5.1+cu121
+- Mixed precision: FP16 enabled via `--amp`
+- Results (500 steps ~6 minutes):
+  - Loss: 16.38 → 8.26 (≈49% reduction)
+  - MLM accuracy: up to 16.7%
+  - GPU memory: ~750MB of 16GB (very efficient)
+
+Recommended command (fits comfortably on 16GB):
+```bash
+CUDA_VISIBLE_DEVICES=0 python3 scripts/train_v2.py \
+  --config configs/train_v2_gpu.yaml \
+  --steps 1000 --max_samples 5000 \
+  --amp --micro_batch_size 8 --grad_accum_steps 8 \
+  --save_every_steps 200
+```
+
+Monitoring:
+```bash
+tail -f logs/train_v2_metrics.csv
+watch -n 2 nvidia-smi
+```
+
+
 Current GPU training issue and resolution
 - Issue: In some GPU runs (e.g., production_v1), generated metadata did not reflect the actual run-scoped artifacts. Symptoms included run_name set to current_training, fallback training_results (500 steps), and missing artifact paths/checksums.
 - Root cause: Generating metadata without providing the run-scoped context caused the generator to fall back to default paths.
