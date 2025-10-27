@@ -127,18 +127,55 @@ class SimpleEncoderWrapper:
         return tok
 
     def maybe_load_checkpoint(self, ckpt_path: Path):
+        """Best-effort loader that understands multiple checkpoint formats.
+        Supports:
+          - {'model_state_dict', 'mlm_head_state_dict', 'mnm_head_state_dict', ...}
+          - {'model': state_dict, ...}
+          - {'state_dict': full_state_dict}
+          - raw state_dict
+        """
         try:
-            if ckpt_path.exists():
-                obj = torch.load(ckpt_path, map_location=self.device)
-                state = obj.get('state_dict', obj) if isinstance(obj, dict) else None
-                if state:
-                    self.model.load_state_dict(state, strict=False)
-                    # Try loading scorer if present
-                    scorer_state = {k.replace('scorer.', ''): v for k, v in state.items() if k.startswith('scorer.')}
-                    if scorer_state:
-                        self.scorer.load_state_dict(scorer_state, strict=False)
-        except Exception:
-            pass  # best-effort
+            if not ckpt_path.exists():
+                return
+            obj = torch.load(ckpt_path, map_location=self.device)
+            state = None
+            if isinstance(obj, dict):
+                # Common training formats
+                if 'model_state_dict' in obj:
+                    state = obj['model_state_dict']
+                elif 'model' in obj and isinstance(obj['model'], dict):
+                    state = obj['model']
+                elif 'state_dict' in obj and isinstance(obj['state_dict'], dict):
+                    state = obj['state_dict']
+                else:
+                    # Heuristic: if most keys look like module params, treat as state
+                    keys = list(obj.keys())
+                    if keys and all(isinstance(k, str) for k in keys):
+                        # Ensure tensor-like values present
+                        maybe_tensors = sum(hasattr(v, 'shape') for v in obj.values())
+                        if maybe_tensors >= max(1, len(keys)//4):
+                            state = obj
+            # Load into encoder if we found something
+            if state:
+                missing, unexpected = self.model.load_state_dict(state, strict=False)
+                if missing or unexpected:
+                    print(f"Warning: loaded checkpoint with missing={len(missing)} unexpected={len(unexpected)} keys")
+            # Try loading scorer head if present in the same checkpoint dict
+            if isinstance(obj, dict):
+                scorer_state = None
+                if 'scorer' in obj and isinstance(obj['scorer'], dict):
+                    scorer_state = obj['scorer']
+                else:
+                    # Extract any keys that were saved as 'scorer.*'
+                    flat = obj.get('state_dict', obj) if isinstance(obj, dict) else {}
+                    if isinstance(flat, dict):
+                        scorer_state = {k.split('scorer.', 1)[1]: v for k, v in flat.items() if k.startswith('scorer.')}
+                        if not scorer_state:
+                            scorer_state = None
+                if scorer_state:
+                    self.scorer.load_state_dict(scorer_state, strict=False)
+        except Exception as e:
+            print(f"Warning: failed to load checkpoint {ckpt_path.name}: {e}")  # best-effort
 
     def _hash_tokens(self, text: str) -> List[int]:
         # Simple tokenization: split on non-alphanum, fallback to chars

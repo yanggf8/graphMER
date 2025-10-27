@@ -1,22 +1,18 @@
 # GraphMER-SE Production Checklist
 
-## ✅ Validated Components (October 2025)
+## ✅ Validated Components (2025-10-28)
 
 ### Training Pipeline
-- [x] **5,000-step extended training**: 79.5% loss reduction validated
-- [x] **Multi-seed reproducibility**: Seeds 42, 123 both converge
-- [x] **GPU memory efficiency**: 8GB profile runs comfortably
-- [x] **Periodic checkpointing**: Every 250 steps, 20 checkpoints saved
-- [x] **Mixed precision**: AMP active, no numerical issues
-- [x] **Constraint regularizers**: Antisymmetry, acyclicity, contrastive losses active
-- [x] **Curriculum learning**: Progressive sequence length 128→256→512
-- [x] **Negative sampling**: Type-consistent sampling with 15% ratio
+- [x] Extended training (1k–5k steps) on CPU/GPU
+- [x] Checkpointing and automatic cleanup validated
+- [x] Mixed precision on GPU
+- [x] Constraint regularizers and curriculum learning available
+- [x] Negative sampling enabled
 
 ### Knowledge Graph
-- [x] **Production dataset**: 21,006 triples, 99.52% validation quality
-- [x] **Multi-language support**: Python + Java parsers integrated
-- [x] **Fast rebuild**: 1.1s for 21k triples, scalable to 30k+
-- [x] **Ontology validation**: Acyclic inheritance, domain/range checks
+- [x] Enhanced dataset generated (multi-language); further scaling recommended
+- [x] Ontology validation checks available
+- [x] Java/JS parsing optional; Python parsing default
 
 ### Validation Infrastructure
 - [x] **Streaming validation**: Real-time output, no hangs

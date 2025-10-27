@@ -2,7 +2,17 @@
 
 GraphMER-SE adapts the GraphMER neurosymbolic encoder (originally for the biomedical domain) to software engineering. It combines code/document tokens with knowledge-graph (KG) triples using Leafy Chain Graph Encoding and relation-aware attention.
 
-## ✅ Status: PRODUCTION COMPLETE - Full GraphMER Paper Compliance + Multi-Language
+## Latest Evaluation Update (2025-10-28)
+- Checkpoint loading fix applied; evaluation now uses trained weights.
+- Enhanced KG and stable tokenizer added.
+- Link Prediction (enhanced KG): MRR 0.0143, Hits@10 2.6% (3,151 test triples).
+- Other tasks currently at 0% due to missing test-case generation; requires data scaling and generators.
+- Next steps: scale KG, add task generators, extend training to 20k–50k steps with hard negatives.
+
+## Project Status
+- Implementation complete for core architecture and features.
+- Evaluation baselines are below production targets; further data and fine-tuning needed.
+
 
 **Implementation Complete** (October 27, 2025)
 - ✅ **Full GraphMER paper compliance**: 100% of core requirements implemented
@@ -32,7 +42,7 @@ python3 scripts/build_kg_enhanced.py --source_dir data/raw/python_samples --max_
 python3 scripts/eval_comprehensive.py --checkpoint logs/checkpoints/model_v2_20251027_171135_s42.pt
 ```
 
-## 🏆 GraphMER Paper Compliance - COMPLETE
+## 🏆 GraphMER Paper Compliance - IMPLEMENTED
 
 ### Core Requirements ✅
 1. **Neurosymbolic Architecture** ✅ - Text + KG integration (`src/training/dataset_v2.py`)

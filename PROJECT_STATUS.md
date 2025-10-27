@@ -23,10 +23,11 @@
 - **Production Infrastructure** - Optimized checkpointing
 
 ### ✅ Training Results
-- **Steps**: 1,000 (extended CPU training)
-- **Loss Reduction**: 57% (16.4 → 6.999)
-- **MLM Accuracy**: 33% validation
-- **Training Time**: 1.5 hours (CPU)
+- 1,000–5,000 steps completed across runs
+- Loss reduction: ~47–59%
+- MLM accuracy: ~27–33% validation
+- MNM accuracy: up to ~23%
+- Checkpointing and cleanup verified
 
 ## 🌍 Multi-Language Achievement
 

@@ -1,20 +1,18 @@
 # GraphMER-SE Project Handover
 
-## Current Status: Production Ready ✅
+## Current Status: Implementation Complete, Evaluation Baseline Below Targets
 
-**Date**: October 2024  
-**85M Parameter Model**: Fully validated and production-ready
+Date: 2025-10-28
+Model: 85M parameter encoder implemented and trained; evaluation baselines require more data and task generators.
 
-### Validated Results
+### Latest Evaluation Update
+- Checkpoint loading fix applied; evaluation now uses trained weights.
+- Tokenizer persisted and enhanced KG built.
+- Link Prediction (enhanced KG): MRR 0.0143, Hits@10 2.6% (3,151 test triples).
+- Other tasks at 0% due to missing test-case generation.
+- Action: scale KG, add task generators (code search, disambiguation, call-graph, dependency), extend training to 20k–50k steps with hard negatives.
 
-**500-Step Baseline (October 2024)**:
-- ✅ **Loss Reduction**: 51.2% (0.1872 → 0.0913)
-- ✅ **Peak MLM Accuracy**: 81.82%
-- ✅ **Peak MNM Accuracy**: 29.03%
-- ✅ **Architecture**: 768/12/12/3072 (85M parameters)
-- ✅ **Knowledge Graph**: 29,174 triples, 99.39% validation quality
-
-### Quick Start Commands
+### Quick Start Commands (Updated)
 
 **Run Validated Baseline (500 steps)**:
 ```bash
@@ -26,14 +24,19 @@ python scripts/train.py --config configs/train_cpu.yaml --steps 500 --limit 1000
 python scripts/train.py --config configs/train_cpu.yaml --steps 1000 --limit 32 --chunk_size 2
 ```
 
-**Build Knowledge Graph**:
+**Build Enhanced Knowledge Graph**:
 ```bash
-python scripts/build_kg_enhanced.py --source_dir data/raw/python_samples
+python3 scripts/build_kg_enhanced.py --source_dir data/raw/python_samples --max_files 300
+# For larger coverage:
+python3 scripts/build_kg_enhanced.py --source_dir data/raw/python_corpus --max_files 5000
 ```
 
-**Evaluate Model (config-aware)**:
+**Comprehensive Evaluation (fixed loader + enhanced KG)**:
 ```bash
-python scripts/eval.py --config configs/train_cpu.yaml --limit 32 --chunk_size 2
+python3 scripts/eval_comprehensive.py \
+  --checkpoint logs/checkpoints/model_v2_20251028_013256_s42.pt \
+  --triples data/kg/enhanced_multilang.jsonl \
+  --output logs/evaluation_results_enhanced.json
 ```
 
 **Run Scaling Experiment**:

@@ -58,9 +58,16 @@ def main():
     print(f"Discovered {len(py_files)} Python files, {len(java_files)} Java files")
 
     # Import after discovery to avoid overhead
-    from src.kg.builder import build_seed_kg_from_python_files
-    from src.parsing.java_parser import JavaParser
+    from src.kg.builder import build_seed_kg_from_files
     from src.ontology.kg_validator import validate_kg
+    # Java parsing is optional; skip if dependency is unavailable
+    java_available = True
+    JavaParser = None
+    try:
+        from src.parsing.java_parser import JavaParser  # requires javalang
+    except Exception as e:
+        print(f"Java parsing disabled: {e}")
+        java_available = False
 
     file_hashes: dict[str, str] = {}
     all_triples_flat: list[dict] = []  # flat schema: head(str), relation(str), tail(str), qualifiers(dict)
@@ -69,7 +76,7 @@ def main():
     # Process Python files
     if py_files:
         py_triples_file = output_dir / "temp_python.jsonl"
-        build_seed_kg_from_python_files(py_files, py_triples_file)
+        build_seed_kg_from_files(py_files, py_triples_file)
 
         # Read Python triples (already flat)
         if py_triples_file.exists():
@@ -98,7 +105,7 @@ def main():
             file_hashes[str(f)] = compute_file_hash(f)
 
     # Process Java files
-    if java_files:
+    if java_files and java_available and JavaParser is not None:
         java_parser = JavaParser()
         for java_file in java_files:
             try:

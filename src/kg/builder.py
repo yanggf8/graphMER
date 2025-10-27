@@ -5,8 +5,22 @@ from pathlib import Path
 import json
 
 from src.parsing.python_parser import PythonCodeParser
-from src.parsing.java_parser import JavaCodeParser
-from src.parsing.js_parser import JavaScriptCodeParser
+# Optional language parsers; allow environments without extra deps
+from src.parsing.python_parser import PythonCodeParser
+try:
+    from src.parsing.js_parser import JavaScriptCodeParser  # type: ignore
+    _JS_AVAILABLE = True
+except Exception:
+    JavaScriptCodeParser = None  # type: ignore
+    _JS_AVAILABLE = False
+
+# Java is optional; allow environments without javalang
+try:
+    from src.parsing.java_parser import JavaCodeParser  # type: ignore
+    _JAVA_AVAILABLE = True
+except Exception:
+    JavaCodeParser = None  # type: ignore
+    _JAVA_AVAILABLE = False
 
 def build_seed_kg_from_files(files: List[Path], out_path: Path) -> None:
     triples_out = []
@@ -17,10 +31,10 @@ def build_seed_kg_from_files(files: List[Path], out_path: Path) -> None:
             module = f.stem  # simple module name
             parser = PythonCodeParser(str(f), module)
             entities, triples = parser.parse(code)
-        elif f.suffix == '.java':
+        elif f.suffix == '.java' and _JAVA_AVAILABLE and JavaCodeParser is not None:
             parser = JavaCodeParser(str(f))
             entities, triples = parser.parse(code)
-        elif f.suffix == '.js':
+        elif f.suffix == '.js' and _JS_AVAILABLE and JavaScriptCodeParser is not None:
             parser = JavaScriptCodeParser(str(f))
             entities, triples = parser.parse(code)
         else:

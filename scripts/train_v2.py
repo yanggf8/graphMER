@@ -385,6 +385,14 @@ def main():
         'seed': seed,
         'vocab_size': vocab_size,
     }, checkpoint_path)
+    
+    # Keep only 2 most recent checkpoints
+    checkpoints = sorted(checkpoint_dir.glob("model_v2_*.pt"), key=lambda x: x.stat().st_mtime)
+    while len(checkpoints) > 2:
+        oldest = checkpoints.pop(0)
+        oldest.unlink()
+        print(f"🗑️ Removed old checkpoint: {oldest.name}")
+    
     print(f"\n✅ Model checkpoint saved to {checkpoint_path}")
     print(f"✅ Training complete!")
 
