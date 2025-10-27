@@ -86,8 +86,9 @@ def main():
     from src.training.metrics import masked_token_accuracy
 
     # Build dataset from real KG
-    # Prefer seed_python.jsonl; fallback to enhanced_multilang.jsonl if present
+    # Prefer seed_multilang.jsonl; fallback to seed_python.jsonl if present
     candidates = [
+        Path("data/kg/seed_multilang.jsonl"),
         Path("data/kg/seed_python.jsonl"),
         Path("data/kg/enhanced_multilang.jsonl"),
     ]
@@ -351,6 +352,12 @@ def main():
                     'loss': loss.item() * max(1, args.grad_accum_steps)
                 }, intermediate_path)
                 print(f"  Saved intermediate checkpoint: {intermediate_path}")
+                
+                # Keep only latest 2 checkpoints
+                checkpoints = sorted(checkpoint_dir.glob("model_v2_step*.pt"), key=lambda x: x.stat().st_mtime)
+                for old_cp in checkpoints[:-2]:
+                    old_cp.unlink()
+                    print(f"  Deleted old checkpoint: {old_cp.name}")
             
             writer.writerow([
                 step+1, 

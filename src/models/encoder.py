@@ -2,6 +2,8 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 import math
+from .graph_positional import GraphPositionalEncoding
+from .multihop_attention import MultiHopEncoderLayer
 
 
 class TinyRelSelfAttention(nn.Module):
@@ -103,33 +105,69 @@ class TinyEncoderLayer(nn.Module):
 
 
 class TinyEncoder(nn.Module):
-    def __init__(self, vocab_size: int = 32000, d_model: int = 256, n_heads: int = 4, n_layers: int = 4, d_ff: int = 1024, dropout: float = 0.1, num_relations: int = 64, use_rel_attention_bias: bool = True):
+    def __init__(self, vocab_size: int = 32000, d_model: int = 256, n_heads: int = 4, n_layers: int = 4, d_ff: int = 1024, dropout: float = 0.1, num_relations: int = 64, use_rel_attention_bias: bool = True, use_multihop: bool = False, max_hops: int = 3):
         super().__init__()
         self.use_rel_attention_bias = use_rel_attention_bias
+        self.use_multihop = use_multihop
         self.tok_emb = nn.Embedding(vocab_size, d_model)
-        self.pos_emb = nn.Embedding(4096, d_model)
+        
+        # Replace standard positional encoding with graph-aware version
+        self.graph_pos_encoding = GraphPositionalEncoding(d_model, max_seq_len=4096)
+        
         self.rel_emb = nn.Embedding(num_relations, d_model)  # embedding fusion (HGAT-lite)
-        self.layers = nn.ModuleList([
-            TinyEncoderLayer(d_model, n_heads, d_ff, num_relations, dropout, use_rel_bias=use_rel_attention_bias)
-            for _ in range(n_layers)
-        ])
+        
+        # Choose layer type based on multi-hop setting
+        if use_multihop:
+            self.layers = nn.ModuleList([
+                MultiHopEncoderLayer(d_model, n_heads, d_ff, num_relations, max_hops, dropout)
+                for _ in range(n_layers)
+            ])
+        else:
+            self.layers = nn.ModuleList([
+                TinyEncoderLayer(d_model, n_heads, d_ff, num_relations, dropout, use_rel_bias=use_rel_attention_bias)
+                for _ in range(n_layers)
+            ])
+        
         self.norm = nn.LayerNorm(d_model)
 
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor | None = None, rel_ids: torch.Tensor | None = None) -> torch.Tensor:
         B, T = input_ids.shape
-        pos = torch.arange(T, device=input_ids.device).unsqueeze(0).expand(B, T)
-        x = self.tok_emb(input_ids) + self.pos_emb(pos)
+        
+        # Token embeddings
+        x = self.tok_emb(input_ids)
+        
+        # Graph-aware positional encoding
+        if rel_ids is not None:
+            pos_emb = self.graph_pos_encoding(input_ids, rel_ids)
+            x = x + pos_emb
+        else:
+            # Fallback to standard positional encoding if no relation IDs
+            pos = torch.arange(T, device=input_ids.device).unsqueeze(0).expand(B, T)
+            # Create dummy pos_emb for compatibility
+            pos_emb = torch.zeros_like(x)
+            x = x + pos_emb
+        
+        # Relation embeddings (HGAT-lite fusion)
         if rel_ids is not None:
             x = x + self.rel_emb(rel_ids)
+        
         # Build key padding mask for attention
         if attention_mask is not None:
             kpm = attention_mask  # B,T where 1 keep
         else:
             kpm = None
+        
         # Disable relation bias in attention when flag is off by not forwarding rel_ids
-        rel_for_attn = rel_ids if self.use_rel_attention_bias else None
+        if self.use_multihop:
+            # Multi-hop layers always use relation IDs
+            rel_for_attn = rel_ids
+        else:
+            # Standard layers respect the bias flag
+            rel_for_attn = rel_ids if self.use_rel_attention_bias else None
+        
         for layer in self.layers:
             x = layer(x, attn_mask=kpm, rel_ids=rel_for_attn)
+        
         x = self.norm(x)
         return x
 

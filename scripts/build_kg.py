@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-# Build a tiny seed KG from local sample files (offline).
+# Build a seed KG from local sample files (offline).
 
 def main():
     spec_path = Path("docs/specs/data_spec.yaml")
@@ -16,12 +16,19 @@ def main():
     print("Data sources:", spec.get("sources", {}))
     print("Triples schema:", spec.get("triples", {}).get("schema", {}))
 
-    # Auto-discover Python files with filtering
-    from src.kg.builder import build_seed_kg_from_python_files  # type: ignore
+    # Auto-discover source files with filtering
+    from src.kg.builder import build_seed_kg_from_files  # type: ignore
     from pathlib import Path as P
 
-    root = P("data/raw/python_samples")
-    samples = sorted(root.rglob("*.py"))  # Recursive discovery
+    py_root = P("data/raw/python_samples")
+    java_root = P("data/raw/java_samples")
+    js_root = P("data/raw/js_samples")
+    
+    py_samples = sorted(py_root.rglob("*.py"))
+    java_samples = sorted(java_root.rglob("*.java"))
+    js_samples = sorted(js_root.rglob("*.js"))
+    
+    samples = py_samples + java_samples + js_samples
     
     # Filter out unwanted files
     samples = [
@@ -31,16 +38,13 @@ def main():
         and not any(skip in str(p) for skip in ['__pycache__', '.git', 'test_'])  # Skip test/cache files
     ]
     
-    print(f"Discovered {len(samples)} Python files")
+    print(f"Discovered {len(samples)} source files (Python, Java, and JavaScript)")
     if not samples:
-        print("No Python files found, creating minimal sample")
-        sample_file = root / "minimal.py"
-        sample_file.parent.mkdir(parents=True, exist_ok=True)
-        sample_file.write_text("def hello(): pass\nclass Test: pass")
-        samples = [sample_file]
+        print("No source files found, exiting.")
+        return
     
-    out = P("data/kg/seed_python.jsonl")
-    build_seed_kg_from_python_files(samples, out)
+    out = P("data/kg/seed_multilang.jsonl")
+    build_seed_kg_from_files(samples, out)
     print("Wrote:", out)
 
     # Validate against ontology

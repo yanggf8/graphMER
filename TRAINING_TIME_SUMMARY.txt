@@ -1,0 +1,75 @@
+================================================================================
+CPU TRAINING BENCHMARK - QUICK REFERENCE
+================================================================================
+
+SYSTEM: 12th Gen Intel i5-1240P (8 cores, 16 threads, 19GB RAM)
+BENCHMARK: 20 steps completed in 91 seconds
+PERFORMANCE: 4.55 seconds per effective step (with grad_accum=4)
+
+================================================================================
+TIME ESTIMATES FOR DIFFERENT CONFIGURATIONS
+================================================================================
+
+STANDARD CONFIG (seq_len=512, as benchmarked):
+  100 steps:     7.5 minutes
+  1,000 steps:   1.3 hours
+  3,500 steps:   4.4 hours
+  10,000 steps:  12.6 hours ← OVERNIGHT RUN
+
+OPTIMIZED CONFIG (seq_len=128, 4x faster):
+  100 steps:     ~2 minutes
+  1,000 steps:   ~20 minutes
+  3,500 steps:   ~1.1 hours
+  10,000 steps:  ~3.2 hours ← EVENING RUN
+
+================================================================================
+RECOMMENDED APPROACH
+================================================================================
+
+START TONIGHT:
+  bash tmp_rovodev_start_10k_training.sh
+
+CONFIGURATION:
+  - Config: configs/train_cpu_optimized.yaml
+  - Steps: 10,000
+  - Seq length: 128 (optimized)
+  - Expected time: ~3-4 hours
+  - Checkpoints: Every 1,000 steps
+
+EXPECTED COMPLETION:
+  If started at 6 PM → Done by 9-10 PM (same evening!)
+  If started at 10 PM → Done by 1-2 AM
+
+================================================================================
+NEXT STEPS AFTER TRAINING
+================================================================================
+
+1. Evaluate the 10k checkpoint:
+   python scripts/eval_comprehensive.py
+
+2. Compare to baseline (3.5k steps):
+   - Link Prediction MRR: 0.0011 → target >0.3
+   - Code Search MRR: 0.2936 → target >0.35
+   - Call-graph F1: 0.6295 → target >0.63
+
+3. Decide next phase:
+   - If MRR >0.3: Scale to 30k KG triples, train to 20k steps
+   - If MRR <0.3: Investigate architecture or continue to 15k steps
+
+================================================================================
+KEY FILES
+================================================================================
+
+Documentation:
+  - CPU_TRAINING_PROFILE.md      (Detailed analysis)
+  - BENCHMARK_RESULTS.md          (Benchmark details)
+  - TRAINING_TIME_SUMMARY.txt     (This file)
+
+Configuration:
+  - configs/train_cpu_optimized.yaml
+
+Scripts:
+  - tmp_rovodev_start_10k_training.sh (Start training)
+  - tmp_rovodev_cpu_benchmark.sh      (Re-run benchmark)
+
+================================================================================

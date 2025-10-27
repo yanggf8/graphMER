@@ -5,16 +5,27 @@ from pathlib import Path
 import json
 
 from src.parsing.python_parser import PythonCodeParser
+from src.parsing.java_parser import JavaCodeParser
+from src.parsing.js_parser import JavaScriptCodeParser
 
-
-def build_seed_kg_from_python_files(files: List[Path], out_path: Path) -> None:
+def build_seed_kg_from_files(files: List[Path], out_path: Path) -> None:
     triples_out = []
     entities_out = {}
     for f in files:
-        module = f.stem  # simple module name
-        parser = PythonCodeParser(str(f), module)
         code = f.read_text(encoding="utf-8")
-        entities, triples = parser.parse(code)
+        if f.suffix == '.py':
+            module = f.stem  # simple module name
+            parser = PythonCodeParser(str(f), module)
+            entities, triples = parser.parse(code)
+        elif f.suffix == '.java':
+            parser = JavaCodeParser(str(f))
+            entities, triples = parser.parse(code)
+        elif f.suffix == '.js':
+            parser = JavaScriptCodeParser(str(f))
+            entities, triples = parser.parse(code)
+        else:
+            continue # Skip unsupported file types
+
         for e in entities.values():
             entities_out[e.id] = {"id": e.id, "type": e.type, "file": e.file}
         for t in triples:
