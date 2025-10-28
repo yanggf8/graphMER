@@ -63,11 +63,16 @@ python3 scripts/eval_comprehensive.py --checkpoint logs/checkpoints/model_v2_202
 
 ## 📊 Training Results
 
-**Latest Training** (1,000 steps, CPU):
+**Latest Training** (3,600 steps, Apple M2 / MPS profile):
+- **Runtime**: ~12 minutes using `python scripts/run_gpu_profile.py --profile M2_8C_16G`
+- **Final Losses**: total 3.65 (MLM 2.16, MNM 1.84) with MNM weight ramping and grad clipping
+- **Validation**: MLM accuracy peaked at 1.0 on held-out batches; MNM reached 0.6 during late curriculum
+- **Dataset**: 674 Leafy Chain samples from `data/kg/enhanced_multilang.jsonl` with re-trained 13.8k vocab BPE
+- **Checkpoint**: `logs/checkpoints/model_v2_20251028_181737_s42.pt`
+
+**Previous CPU Baseline** (1,000 steps):
 - **Loss Reduction**: 57% (16.4 → 6.999)
 - **MLM Convergence**: Stable with 33% validation accuracy
-- **MNM Performance**: Consistent learning on relation prediction
-- **Architecture**: 85M parameters with all GraphMER features active
 - **Knowledge Graph**: 29,274 triples (Python, Java, JavaScript), 99.23% validation quality
 
 ## 🔧 Architecture
