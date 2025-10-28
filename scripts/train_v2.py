@@ -58,10 +58,42 @@ def main():
     parser.add_argument("--log_mnm_debug", type=int, default=0, help="Every N steps, log MNM debug info (0=disabled)")
     parser.add_argument("--clip_grad", type=float, default=0.0, help="Gradient clipping max norm (0=disabled)")
     parser.add_argument("--warmup_steps", type=int, default=0, help="Linear LR warmup steps (0=disabled)")
+    parser.add_argument("--max_code_files", type=int, default=80, help="Number of raw code files to include when using --use_full_kg")
     args = parser.parse_args()
 
     config = load_config(Path(args.config))
     print("Loaded training config keys:", list(config.keys()))
+
+    # Allow config defaults when CLI flags are not specified
+    training_cfg = config.get("training_data", {})
+    opt_cfg = config.get("optimizer", {})
+    defaults = {
+        "micro_batch_size": parser.get_default("micro_batch_size"),
+        "grad_accum_steps": parser.get_default("grad_accum_steps"),
+        "clip_grad": parser.get_default("clip_grad"),
+        "warmup_steps": parser.get_default("warmup_steps"),
+        "max_code_files": parser.get_default("max_code_files"),
+    }
+    if args.micro_batch_size == defaults["micro_batch_size"]:
+        cfg_micro = training_cfg.get("micro_batch_size")
+        if cfg_micro:
+            args.micro_batch_size = int(cfg_micro)
+    if args.grad_accum_steps == defaults["grad_accum_steps"]:
+        cfg_grad = training_cfg.get("grad_accumulation_steps") or training_cfg.get("grad_accum_steps")
+        if cfg_grad:
+            args.grad_accum_steps = int(cfg_grad)
+    if args.clip_grad == defaults["clip_grad"]:
+        clip_cfg = opt_cfg.get("clip_grad") or opt_cfg.get("clip_grad_norm")
+        if clip_cfg:
+            args.clip_grad = float(clip_cfg)
+    if args.warmup_steps == defaults["warmup_steps"]:
+        warm_cfg = opt_cfg.get("scheduler", {}).get("warmup_steps")
+        if warm_cfg:
+            args.warmup_steps = int(warm_cfg)
+    if args.max_code_files == defaults["max_code_files"]:
+        cfg_code_files = training_cfg.get("max_code_files")
+        if cfg_code_files:
+            args.max_code_files = int(cfg_code_files)
 
     import torch
     # Set random seeds for reproducibility
@@ -76,7 +108,13 @@ def main():
     
     print(f"Using random seed: {seed}")
     
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Device selection: CUDA > MPS > CPU
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
     print(f"Using device: {device}")
     
     from torch.utils.data import DataLoader
@@ -106,13 +144,14 @@ def main():
         print("Building dataset from FULL KG (all triples)...")
         # Get all code files
         code_dir = Path("data/raw/python_samples")
-        code_paths = list(code_dir.glob("*.py"))
-        code_paths.extend(code_dir.glob("**/*.py"))
+        code_paths = sorted(set(code_dir.glob("*.py")) | set(code_dir.glob("**/*.py")))
+        if args.max_code_files > 0:
+            code_paths = list(code_paths)[:args.max_code_files]
         
         ds = build_dataset_from_kg_full(
             triples_path, 
-            code_paths[:50],  # Use first 50 files for now
-            max_seq_len=128,
+            code_paths,
+            max_seq_len=training_cfg.get("max_seq_len", 128),
             max_samples=args.max_samples,
             max_leaves_per_sample=5
         )
@@ -122,7 +161,7 @@ def main():
         ds = build_dataset_from_kg_simple(
             triples_path, 
             code_path, 
-            max_seq_len=128,
+            max_seq_len=training_cfg.get("max_seq_len", 128),
             limit=args.max_samples or 1000,
             chunk_size=5
         )
@@ -189,7 +228,6 @@ def main():
     mlm_head.to(device)
     mnm_head.to(device)
 
-    opt_cfg = config.get("optimizer", {})
     params_all = list(model.parameters()) + list(mlm_head.parameters()) + list(mnm_head.parameters())
     base_lr = opt_cfg.get("lr", 3e-4)
     optim = torch.optim.AdamW(

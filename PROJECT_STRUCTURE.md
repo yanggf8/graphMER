@@ -44,6 +44,7 @@ graphMER/ (1.3GB total)
 │   ├── train_v2_gpu.yaml             # GPU training with all features ✅
 │   ├── train_cpu.yaml                 # CPU training fallback
 │   ├── gpu_profiles.yaml             # Validated GPU configurations
+│   ├── train_mps.yaml                # Apple M2/MPS optimized curriculum profile ✅
 │   └── train_scaling.yaml            # Long-run scaling config
 │
 ├── data/                              # Data and knowledge graphs (16MB)

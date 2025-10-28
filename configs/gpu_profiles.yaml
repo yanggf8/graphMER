@@ -41,3 +41,18 @@ RTX3050_8G:
   save_every_steps: 200
   amp: true
   config: "configs/train_v2_gpu.yaml"
+
+M2_8C_16G:
+  description: "Apple M2 (8 cores, 16GB RAM) - tuned for MPS with extended curriculum"
+  steps: 3600
+  max_samples: 20000
+  micro_batch_size: 4
+  grad_accum_steps: 24
+  save_every_steps: 300
+  amp: false
+  config: "configs/train_mps.yaml"
+  use_full_kg: true
+  warmup_steps: 400
+  clip_grad: 1.0
+  mnm_weight_ramp: 900
+  max_code_files: 120

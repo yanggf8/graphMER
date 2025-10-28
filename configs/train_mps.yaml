@@ -1,0 +1,68 @@
+# Training profile tuned for Apple M2 (MPS)
+# Targets steady convergence without CUDA while keeping wall-clock < ~12 minutes for 4k steps.
+
+run:
+  seed: 2025
+  mixed_precision: false
+  deterministic: true
+  log_interval: 25
+  eval_interval_steps: 200
+  save_interval_steps: 500
+
+hardware:
+  device: mps
+  num_workers: 2
+  pin_memory: false
+
+model:
+  hidden_size: 768
+  num_layers: 12
+  num_heads: 12
+  intermediate_size: 3072
+  dropout: 0.1
+  use_rel_attention_bias: true
+
+optimizer:
+  name: adamw
+  lr: 2.2e-4
+  weight_decay: 0.015
+  betas: [0.9, 0.97]
+  eps: 1e-8
+  scheduler:
+    name: cosine
+    warmup_steps: 400
+  clip_grad: 1.0
+
+training_data:
+  micro_batch_size: 4
+  grad_accumulation_steps: 24
+  max_seq_len: 384
+  max_code_files: 120
+  curriculum_learning:
+    enabled: true
+    schedule:
+      - {steps: 0, max_seq_len: 192}
+      - {steps: 1200, max_seq_len: 256}
+      - {steps: 2400, max_seq_len: 320}
+      - {steps: 3600, max_seq_len: 384}
+  negative_sampling:
+    enabled: true
+    ratio: 0.25
+    type_consistent: true
+
+objectives:
+  mlm_loss_weight: 1.0
+  mnm_loss_weight: 0.8
+
+regularizers:
+  ontology_constraints:
+    antisymmetry_weight: 0.15
+    acyclicity_weight: 0.15
+  contrastive:
+    enabled: true
+    temperature: 0.06
+
+notes:
+  - Uses full KG pipeline with up to 120 raw code files for richer supervision.
+  - Gradient norm clipping plus warmup smooth out MPS training instabilities.
+  - MNM objective weight reduced to 0.8; ramp to full weight with --mnm_weight_ramp if desired.

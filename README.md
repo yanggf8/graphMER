@@ -2,6 +2,8 @@
 
 GraphMER-SE adapts the GraphMER neurosymbolic encoder (originally for the biomedical domain) to software engineering. It combines code/document tokens with knowledge-graph (KG) triples using Leafy Chain Graph Encoding and relation-aware attention.
 
+For contribution practices and workflow expectations, see [Repository Guidelines](AGENTS.md).
+
 ## Latest Evaluation Update (2025-10-28)
 - Checkpoint loading fix applied; evaluation now uses trained weights.
 - Enhanced KG and stable tokenizer added.
@@ -143,6 +145,12 @@ python3 scripts/train_v2.py --steps 1000 --config configs/train_cpu.yaml
 **GPU Training** (if available):
 ```bash
 python3 scripts/run_gpu_profile.py --profile 408032G --steps 5000
+```
+
+**Apple M2 Training** (MPS accelerated curriculum):
+```bash
+python3 scripts/run_gpu_profile.py --profile M2_8C_16G
+# Uses configs/train_mps.yaml with warmup, gradient clipping, and full KG sampling
 ```
 
 **Multi-hop Training**:

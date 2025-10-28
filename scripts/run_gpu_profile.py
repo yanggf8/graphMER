@@ -44,6 +44,29 @@ def run_profile(profile_name, overrides=None):
     
     if "save_every_steps" in profile and profile["save_every_steps"]:
         cmd.extend(["--save_every_steps", str(profile["save_every_steps"])])
+
+    # Optional tuning flags
+    flag_mapping = {
+        "warmup_steps": "--warmup_steps",
+        "clip_grad": "--clip_grad",
+        "mnm_weight_ramp": "--mnm_weight_ramp",
+        "mlm_weight": "--mlm_weight",
+        "mnm_weight": "--mnm_weight",
+        "log_mnm_debug": "--log_mnm_debug",
+        "max_code_files": "--max_code_files",
+    }
+    for key, flag in flag_mapping.items():
+        if key in profile and profile[key] is not None:
+            cmd.extend([flag, str(profile[key])])
+
+    if profile.get("use_full_kg"):
+        cmd.append("--use_full_kg")
+
+    extra_args = profile.get("extra_args", [])
+    if extra_args:
+        if not isinstance(extra_args, list):
+            raise TypeError(f"extra_args for profile '{profile_name}' must be a list")
+        cmd.extend(str(arg) for arg in extra_args)
     
     print(f"Executing: {' '.join(cmd)}")
     return subprocess.run(cmd).returncode
