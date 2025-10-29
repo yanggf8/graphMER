@@ -11,6 +11,7 @@
 - `make test` runs `pytest -q` after seeding placeholder artifacts via `scripts/ensure_test_artifacts.py`; rely on this target instead of calling pytest directly.
 - `python scripts/run_gpu_profile.py --profile 408032G --steps 5000` executes the validated GPU training loop described in `configs/gpu_profiles.yaml`.
 - `python scripts/run_gpu_profile.py --profile M2_8C_16G` drives the optimized Apple M2/MPS curriculum using `configs/train_mps.yaml`, full KG sampling, warmup, and gradient clipping baked in.
+- Refer to `docs/M2_MPS_TRAINING_GUIDE.md` for M2 runtime expectations, tuning tips, and troubleshooting.
 - `make generate-metadata RUN_NAME=production_YYYYMMDD_HHMMSS` regenerates `ablation_metadata.json`; follow up with `make validate-metadata-prod` before release tags.
 
 ## Coding Style & Naming Conventions

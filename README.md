@@ -157,6 +157,7 @@ python3 scripts/run_gpu_profile.py --profile 408032G --steps 5000
 python3 scripts/run_gpu_profile.py --profile M2_8C_16G
 # Uses configs/train_mps.yaml with warmup, gradient clipping, and full KG sampling
 ```
+See `docs/M2_MPS_TRAINING_GUIDE.md` for calibration data, runtime tips, and troubleshooting notes.
 
 **Multi-hop Training**:
 ```bash

@@ -66,3 +66,5 @@ notes:
   - Uses full KG pipeline with up to 120 raw code files for richer supervision.
   - Gradient norm clipping plus warmup smooth out MPS training instabilities.
   - MNM objective weight reduced to 0.8; ramp to full weight with --mnm_weight_ramp if desired.
+  - See docs/M2_MPS_TRAINING_GUIDE.md for calibration metrics, runtime expectations, and troubleshooting.
+  - Regenerate data/tokenizer/code_bpe.json (13.8k vocab) if tokenizer load errors appear.
