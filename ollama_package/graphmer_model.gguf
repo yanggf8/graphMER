@@ -1,0 +1,14 @@
+# GraphMER-SE Model Placeholder
+# This would contain the actual GGUF conversion of your PyTorch model
+# 
+# To implement full conversion:
+# 1. Export model to ONNX format
+# 2. Use llama.cpp conversion tools
+# 3. Quantize for efficient serving
+#
+# Model specs:
+# - Parameters: 85M
+# - Architecture: Transformer + Graph Positional Encoding
+# - Training: 10,000 steps on RTX 3070
+# - Languages: Python, Java, JavaScript
+# - Knowledge Graph: 28,961 triples
